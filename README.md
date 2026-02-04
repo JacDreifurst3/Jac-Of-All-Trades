@@ -111,7 +111,7 @@ docker compose up --build
 This will run the program, make sure that no errors happen. 
 When you are done with the code run the command : 
 ```
-docker compose down. 
+docker compose down 
 ```
 ### HOW TO SEE FRONTEND
 To see the front end development live you can open your web browser and enter: 
