@@ -9,7 +9,7 @@ class Space{
     }
 
     isOccupied(){
-        return this.piece !== null;
+        return this.piece !== null || this.terrain != "LAND";
     }
 
     placePiece(piece){
