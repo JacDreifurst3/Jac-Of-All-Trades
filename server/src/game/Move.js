@@ -11,4 +11,4 @@ class Move{
         this.timestamp = Date.now();
     }
 }
-module.exports(Move);
+module.exports = Move;

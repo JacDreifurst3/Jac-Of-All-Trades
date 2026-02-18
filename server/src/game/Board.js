@@ -28,30 +28,26 @@ class Board {
     return this.grid[x][y];
   }
 
-  movePiece(fromX, fromY, toX, toY) {
+  // 
+  generateMove(fromX, fromY, toX, toY) {
     const fromSpace = this.getSpace(fromX, fromY);
     const toSpace = this.getSpace(toX, toY);
 
     if (!fromSpace || !toSpace || !fromSpace.piece) {
       throw new Error("Invalid move");
     }
-    if(toSpace.isOccupied){
-        this.resolveCombat(fromSpace, toSpace)
-    } else {
-        toSpace.placePiece(fromSpace.removePiece());
-    }
+
+    const attacker = fromSpace.piece;
+    const defender = toSpace.piece;
+
+    return {fromSpace, toSpace, attacker, defender};
   }
 
-  // Currently missing reveal logic
-  resolveCombat(attacker, defender){
-    if(attacker.piece.getRank() > defender.piece.getRank()){
-        defender.removePiece();
-        defender.placePiece((attacker.removePiece()));
-    } else if (attacker.piece.getRank() < defender.piece.getRank()){
-        attacker.removePiece();
-    }
+
+  executeMove(fromSpace, toSpace){
+    toSpace.placePiece(fromSpace.removePiece());
   }
 
 }
 
-module.exports(Board);
+module.exports = Board;
