@@ -4,7 +4,7 @@ class Space{
     constructor(x, y, terrain){
         this.x = x;
         this.y = y;
-        this.terain = terrain;
+        this.terrain = terrain;
         this.piece = null;
     }
 
