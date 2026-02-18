@@ -13,6 +13,10 @@ class Piece{
         this.isRevealed = true;
     }
 
+    hide(){
+        this.isRevealed = false;
+    }
+
     getRank(){
         return this.rank;
     }
