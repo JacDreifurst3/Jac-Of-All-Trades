@@ -141,6 +141,16 @@ If you just want to see the logs for on or the other you can attach to the end o
 docker compose logs -f backend
 ```
 
+## Run Backend Tests
+To run backend javascript tests first ensure you have npm installed with the following:
+
+cd server
+npm install
+
+Then run the tests using:
+
+npm test
+
 
 
 

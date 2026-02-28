@@ -11,13 +11,13 @@ class Game{
   }
 
   makeMove(fromX, fromY, toX, toY){
-    const moveData = this.board.movePiece(fromX, fromY, toX, toY);
+    const moveData = this.board.generateMove(fromX, fromY, toX, toY);
     const { fromSpace, toSpace, attacker, defender } = moveData;
 
     if (defender && defender.owner === this.currentPlayer) {
       throw new Error("Cannot move into your own piece");
     }
-    if (!attacker.isMovable()) {
+    if (!attacker.canMove()) {
       throw new Error("This piece cannot move");
     }
 
@@ -84,5 +84,10 @@ class Game{
         return "BOTH_DIE";
     }
   }
+
+  switchTurn() {
+    this.currentTurn = this.currentTurn === "RED" ? "BLUE" : "RED";
+  }
+  
 }
 module.exports = Game;
