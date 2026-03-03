@@ -13,7 +13,11 @@ class Board {
     for (let row = 0; row < this.size; row++) {
       const currentRow = [];
       for (let col = 0; col < this.size; col++) {
-        currentRow.push(new Space(row, col));
+        if((row == 4 || row == 5) && (col == 2 || col == 3 || col == 6 || col == 7)){
+          currentRow.push(new Space(row, col, "WATER"));
+        } else{
+          currentRow.push(new Space(row, col, "LAND"));
+        }
       }
       grid.push(currentRow);
     }
@@ -27,8 +31,7 @@ class Board {
     }
     return this.grid[x][y];
   }
-
-  // 
+ 
   generateMove(fromX, fromY, toX, toY) {
     const fromSpace = this.getSpace(fromX, fromY);
     const toSpace = this.getSpace(toX, toY);
