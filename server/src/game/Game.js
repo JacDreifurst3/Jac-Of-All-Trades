@@ -86,7 +86,7 @@ class Game{
   }
 
   switchTurn() {
-    this.currentTurn = this.currentTurn === "RED" ? "BLUE" : "RED";
+    this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
   }
   
 }
