@@ -89,9 +89,7 @@ class Game {
     this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
   }
 
-}
-
-getGameState() {
+  getGameState() {
   return {
     board: this.board.serialize(),
     currentPlayer: this.currentPlayer,
@@ -100,6 +98,10 @@ getGameState() {
     moveHistory: this.moveHistory
   };
 }
+
+}
+
+
 
 
 module.exports = Game;
