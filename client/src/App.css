@@ -1,100 +1,124 @@
-.boardOnlyPage {
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    background: #7b0000;
-  }
-  
-  .strategoBoard {
-    --tile: 130px;
-    --gap: 3px;
-  
-    display: grid;
-    grid-template-columns: repeat(10, var(--tile));
-    grid-template-rows: repeat(10, var(--tile));
-    gap: var(--gap);
-  
-    padding: 10px;
-    background: #9ad6a1;
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 0 18px 45px rgba(0,0,0,0.45);
-  }
-  
-  .tile {
-    width: var(--tile);
-    height: var(--tile);
-  
-    display: flex;
-    align-items: center;   
-    justify-content: center; 
-  
-    position: relative;
-    border-radius: 4px;
-  }
-  
-  .grass {
-    background: #aee0b4;
-    box-shadow: inset 0 0 0 2px rgba(35, 120, 70, 0.45);
-  }
-  .lake {
-    background: #9ea0da;
-    box-shadow: inset 0 0 0 2px rgba(60, 70, 140, 0.35);
-  }
-  .piece {
-    position: relative;
-    width: 65%;
-    height: 65%;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  
-    box-shadow:
-      0 8px 14px rgba(0,0,0,0.25),
-      inset 0 -4px 6px rgba(0,0,0,0.2),
-      inset 0 4px 6px rgba(255,255,255,0.2);
-  }
-  
-  .piece::before {
-    content: "";
-    position: absolute;
-    top: -18%;
-    left: 0;
-    width: 100%;
-    height: 35%;
-  
-    background: inherit;
-    border-radius: 4px;
-  
-    clip-path: polygon(
-      0% 100%,
-      0% 40%,
-      10% 40%, 10% 0%,
-      25% 0%, 25% 40%,
-      40% 40%, 40% 0%,
-      60% 0%, 60% 40%,
-      75% 40%, 75% 0%,
-      90% 0%, 90% 40%,
-      100% 40%,
-      100% 100%
-    );
-  }
-  
-  .piece.blue {
-    background: #4b63ea;
-    border-color: rgba(25, 25, 65, 0.55);
-  }
-  
-  .piece.red {
-    background: #e05757;
-    border-color: rgba(85, 15, 15, 0.55);
-  }
-  
-  .rank {
-    font-family: Georgia, "Times New Roman", serif;
-    font-weight: 700;
-    font-size: 22px;
-    color: #fff;
-    text-shadow: 0 2px 0 rgba(0,0,0,0.35);
-    transform: translateY(2px);
-  }
+:root {
+  --tile: min(9.8vw, 9.8vh);
+  --grass: #7dba6f;
+  --grass-border: #5a9e4e;
+  --lake: #a8b4e8;
+  --lake-dark: #8a96d0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: #6b1a1a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.board-wrapper {
+  position: relative;
+  width: calc(var(--tile) * 10);
+  height: calc(var(--tile) * 10);
+}
+
+.board-bg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-template-rows: repeat(10, var(--tile));
+  z-index: 0;
+}
+
+.tile { width: var(--tile); height: var(--tile); }
+.tile.grass { background-image: url('./background.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+.tile.lake  { background-image: url('./water.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+
+.pieces-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-template-rows: repeat(10, var(--tile));
+  z-index: 3;
+}
+
+.castle-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-template-rows: repeat(10, var(--tile));
+  pointer-events: none;
+  z-index: 4;
+}
+
+.piece {
+  width: var(--tile);
+  height: var(--tile);
+  position: relative;
+  background-size: 186% 126%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  cursor: pointer;
+}
+
+.piece.red {
+  background-image: url('./redPiece.png');
+}
+
+.piece.blue {
+  background-image: url('./bluePiece.png');
+}
+
+.piece.castle {
+  z-index: 2;
+}
+
+.piece.selected {
+  outline: 3px solid yellow;
+  outline-offset: -3px;
+  filter: brightness(1.3);
+}
+
+.piece-icon-wrapper {
+  position: absolute;
+  inset: 0;
+}
+
+.piece-rank {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Georgia', serif;
+  font-size: calc(var(--tile) * 0.22);
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.7);
+  line-height: 1;
+  z-index: 5;
+  user-select: none;
+}
+
+.piece-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  z-index: 4;
+  pointer-events: none;
+}
