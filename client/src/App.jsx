@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import { PIECES, LAKES, BOARD_SIZE, PieceIcon } from "./Pieces";
+import { PIECES, LAKES, BOARD_SIZE, PieceIcon } from "./components/Pieces.jsx";
 
 const RED_ROWS = [
   ["8","2","3","2","7","3","2","2","B","3"],

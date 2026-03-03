@@ -41,8 +41,8 @@ body {
 }
 
 .tile { width: var(--tile); height: var(--tile); }
-.tile.grass { background-image: url('./background.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
-.tile.lake  { background-image: url('./water.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+.tile.grass { background-image: url('./assets/background.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+.tile.lake  { background-image: url('./assets/water.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
 
 .pieces-layer {
   position: absolute;
@@ -74,11 +74,11 @@ body {
 }
 
 .piece.red {
-  background-image: url('./redPiece.png');
+  background-image: url('./assets/redPiece.png');
 }
 
 .piece.blue {
-  background-image: url('./bluePiece.png');
+  background-image: url('./assets/bluePiece.png');
 }
 
 .piece.castle {

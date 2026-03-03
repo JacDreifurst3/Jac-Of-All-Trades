@@ -1,16 +1,16 @@
 import { useState } from "react";
-import bomb from './bomb.png';
-import captain from './captain.png';
-import colonel from './colonel.png';
-import flag from './flag.png';
-import general from './general.png';
-import lieutenant from './lieutenant.png';
-import major from './major.png';
-import marshal from './marshal.png';
-import miner from './miner.png';
-import scout from './scout.png';
-import sergeant from './sergeant.png';
-import spy from './spy.png';
+import bomb from '../assets/bomb.png';
+import captain from '../assets/captain.png';
+import colonel from '../assets/colonel.png';
+import flag from '../assets/flag.png';
+import general from '../assets/general.png';
+import lieutenant from '../assets/lieutenant.png';
+import major from '../assets/major.png';
+import marshal from '../assets/marshal.png';
+import miner from '../assets/miner.png';
+import scout from '../assets/scout.png';
+import sergeant from '../assets/sergeant.png';
+import spy from '../assets/spy.png';
 
 export const PIECES = {
   '10': { rank: 10, name: 'Marshal',    image: marshal    },
