@@ -13,9 +13,9 @@ class Board {
     for (let row = 0; row < this.size; row++) {
       const currentRow = [];
       for (let col = 0; col < this.size; col++) {
-        if((row == 4 || row == 5) && (col == 2 || col == 3 || col == 6 || col == 7)){
+        if ((row == 4 || row == 5) && (col == 2 || col == 3 || col == 6 || col == 7)) {
           currentRow.push(new Space(row, col, "WATER"));
-        } else{
+        } else {
           currentRow.push(new Space(row, col, "LAND"));
         }
       }
@@ -31,7 +31,7 @@ class Board {
     }
     return this.grid[x][y];
   }
- 
+
   generateMove(fromX, fromY, toX, toY) {
     const fromSpace = this.getSpace(fromX, fromY);
     const toSpace = this.getSpace(toX, toY);
@@ -43,12 +43,26 @@ class Board {
     const attacker = fromSpace.piece;
     const defender = toSpace.piece;
 
-    return {fromSpace, toSpace, attacker, defender};
+    return { fromSpace, toSpace, attacker, defender };
   }
 
 
-  executeMove(fromSpace, toSpace){
+  executeMove(fromSpace, toSpace) {
     toSpace.placePiece(fromSpace.removePiece());
+  }
+
+  //this formats board for react
+  serialize() {
+    return this.grid.map(row =>
+      row.map(space => {
+        if (!space.piece) return null;
+        return {
+          rank: space.piece.rank,
+          owner: space.piece.owner,
+          revealed: space.piece.isRevealed
+        };
+      })
+    );
   }
 
 }
