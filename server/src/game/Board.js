@@ -55,12 +55,8 @@ class Board {
   serialize() {
     return this.grid.map(row =>
       row.map(space => {
-        if (!space.piece) return null;
-        return {
-          rank: space.piece.rank,
-          owner: space.piece.owner,
-          revealed: space.piece.isRevealed
-        };
+        // We call the serialize method we just added to the Space class
+        return space.serialize();
       })
     );
   }

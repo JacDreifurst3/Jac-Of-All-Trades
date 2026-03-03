@@ -1,5 +1,13 @@
 const Board = require("./Board");
 const Move = require("./Move");
+const Piece = require('./Piece')
+
+const STARTING_LAYOUT = [
+  ["8","2","3","2","7","3","2","2","B","3"],
+  ["3","5","2","B","7","4","B","2","4","2"],
+  ["8","B","6","5","7","2","3","4","4","5"],
+  ["B","F","B","10","S","6","6","6","9","5"],
+];
 
 class Game {
   constructor() {
@@ -8,6 +16,25 @@ class Game {
     this.moveHistory = []; // Will be connected to/stored in database at some point 
     this.gameOver = false;
     this.winner = null;
+    this.setupInitialPieces(); // initial setup for testing. 
+  }
+
+  setupInitialPieces() {
+    // Populate Blue
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 10; c++) {
+        const rank = STARTING_LAYOUT[3 - r][c]; 
+        this.board.getSpace(r, c).placePiece(new Piece(rank, "BLUE"));
+      }
+    }
+
+    // Populate Red
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 10; c++) {
+        const rank = STARTING_LAYOUT[r][c];
+        this.board.getSpace(r + 6, c).placePiece(new Piece(rank, "RED"));
+      }
+    }
   }
 
   makeMove(fromX, fromY, toX, toY) {
@@ -89,13 +116,36 @@ class Game {
     this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
   }
 
-  getGameState() {
+  //function to get gamestate for frontend.
+  getGameState(forPlayerColor) {
+  const fullBoard = this.board.serialize();
+
+  // Hide enemy ranks that aren't revealed
+  const redactedBoard = fullBoard.map(row => 
+    row.map(space => {
+      if (
+        space.piece && 
+        space.piece.owner !== forPlayerColor && 
+        !space.piece.revealed
+      ) {
+        return {
+          ...space,
+          piece: { 
+            ...space.piece, 
+            rank: "HIDDEN", // Overwrite the rank for the enemy
+            name: "Enemy Piece" 
+          }
+        };
+      }
+      return space;
+    })
+  );
+
   return {
-    board: this.board.serialize(),
+    board: redactedBoard,
     currentPlayer: this.currentPlayer,
     gameOver: this.gameOver,
-    winner: this.winner,
-    moveHistory: this.moveHistory
+    winner: this.winner
   };
 }
 

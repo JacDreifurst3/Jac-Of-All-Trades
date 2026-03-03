@@ -3,16 +3,18 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config();
-const connectDB = require('./config/db');
-const gameService = require('./services/gameService'); // This is inplace of connectDB
+const connectDB = require('./src/config/db');
+const gameService = require('./src/services/gameService'); // This is inplace of connectDB
+const gameRoutes = require('./src/routes/game')
 
 const app = express();
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:3000", 
-        methods: ["GET", "POST"]
+        origin: "http://localhost:5173", 
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
@@ -20,6 +22,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/games', gameRoutes)
 
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
@@ -34,6 +37,7 @@ io.on("connection", (socket) => {
         
         const game = gameService.getGame(lobbyCode);
         // Send the initial state of game to who joins
+        io.to(lobbyCode).emit("gameStateUpdate", game.getGameState())
         socket.emit("gameStateUpdate", game.getGameState());
         console.log(`User joined room: ${lobbyCode}`);
     });
@@ -66,6 +70,6 @@ app.get('/', (req, res) => {
 
 
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
 });
