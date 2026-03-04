@@ -3,10 +3,10 @@ const Move = require("./Move");
 const Piece = require('./Piece')
 
 const STARTING_LAYOUT = [
-  [8,2,3,2,7,3,2,2,11,3],
-  [3,5,2,11,7,4,11,2,4,2],
-  [8,11,6,5,7,2,3,4,4,5],
-  [11,0,11,10,1,6,6,6,9,5],
+  ["8","2","3","2","7","3","2","2","11","3"],
+  ["3","5","2","11","7","4","11","2","4","2"],
+  ["8","11","6","5","7","2","3","4","4","5"],
+  ["11","0","11","10","1","6","6","6","9","5"],
 ];
 
 class Game {
@@ -58,6 +58,10 @@ class Game {
 
     if (attacker.getOwner() != this.currentPlayer) {
       throw new Error("Cannot move while not your turn");
+    }
+
+    if (!attacker) {
+      throw new Error("No piece at that position");
     }
 
     let result;

@@ -67,22 +67,28 @@ io.on("connection", (socket) => {
     socket.on("makeMove", (data)  => {
         const { lobbyCode, fromX, fromY, toX, toY } = data;
         const game = gameService.getGame(lobbyCode);
-
+    
         const redId = game.player['RED'];
         const blueId = game.player['BLUE'];
-
+    
         if (game) {
             try {
-                game.makeMove(fromX, fromY, toX, toY);
-                
-                if (redId) {
-                    io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
-                }
-                if (blueId) {
-                    io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+                // Snapshot ranks before the move
+                const attackerRank = game.board.getSpace(fromX, fromY)?.piece?.rank;
+                const defenderRank = game.board.getSpace(toX, toY)?.piece?.rank;
+    
+                const result = game.makeMove(fromX, fromY, toX, toY);
+    
+                if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+                if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+    
+                // Emit battle result to both players
+                if (defenderRank !== undefined) {
+                    const battleData = { result, attackerRank, defenderRank };
+                    if (redId) io.to(redId).emit("moveResult", battleData);
+                    if (blueId) io.to(blueId).emit("moveResult", battleData);
                 }
             } catch (err) {
-                // Send error to the person who made illegal move
                 socket.emit("error", err.message);
             }
         }
