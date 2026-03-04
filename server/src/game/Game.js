@@ -129,6 +129,28 @@ class Game {
     this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
   }
 
+  getAvailableMovesForPiece(x, y) {
+    const space = this.board.getSpace(x, y);
+    
+    // Validate space exists and has a piece
+    if (!space || !space.piece) {
+      return [];
+    }
+    
+    // Validate piece belongs to current player
+    if (space.piece.getOwner() !== this.currentPlayer) {
+      return [];
+    }
+    
+    // Validate piece can move
+    if (!space.piece.canMove()) {
+      return [];
+    }
+    
+    // Get available moves from board
+    return this.board.getAvailableMoves(space);
+  }
+
   //function to get gamestate for frontend.
   getGameState(forPlayerColor) {
   const fullBoard = this.board.serialize();

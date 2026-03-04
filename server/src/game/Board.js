@@ -55,8 +55,6 @@ class Board {
     if(this.validateMove(currentSpace, possibleSpace)) {
       availableMoves.push({ x: currentX, y: currentY - 1});
     }
-    
-    
 
     return availableMoves;
   }

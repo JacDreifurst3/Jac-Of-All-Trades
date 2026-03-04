@@ -45,6 +45,16 @@ io.on("connection", (socket) => {
         console.log(`User joined room: ${lobbyCode}`);
     });
 
+    socket.on("selectPiece", (data) => {
+        const { lobbyCode, x, y } = data;
+        const game = gameService.getGame(lobbyCode);
+
+        if (game) {
+            const availableMoves = game.getAvailableMovesForPiece(x, y);
+            socket.emit("availableMovesUpdate", { x, y, availableMoves });
+        }
+    });
+
     socket.on("makeMove", (data)  => {
         const { lobbyCode, fromX, fromY, toX, toY } = data;
         const game = gameService.getGame(lobbyCode);
