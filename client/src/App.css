@@ -32,25 +32,35 @@ body {
 }
 
 .board-bg {
-  position: absolute;
-  inset: 0;
+  position: relative;
   display: grid;
   grid-template-columns: repeat(10, var(--tile));
   grid-template-rows: repeat(10, var(--tile));
-  z-index: 0;
+  width: calc(var(--tile) * 10);
+  height: calc(var(--tile) * 10);
+  z-index: 1;
 }
 
-.tile { width: var(--tile); height: var(--tile); }
+.tile {
+  width: var(--tile);
+  height: var(--tile);
+  display: flex;
+  justify-content: center;
+  align-items: center;       
+  position: relative;
+}
 .tile.grass { background-image: url('./assets/background.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
 .tile.lake  { background-image: url('./assets/water.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+.tile.selected { 
+  outline: 3px solid yellow;
+  outline-offset: -3px;
+  z-index: 10;
+  filter: brightness(1.2);
+}
+
 
 .pieces-layer {
-  position: absolute;
-  inset: 0;
   display: grid;
-  grid-template-columns: repeat(10, var(--tile));
-  grid-template-rows: repeat(10, var(--tile));
-  z-index: 3;
 }
 
 .castle-layer {
@@ -64,8 +74,8 @@ body {
 }
 
 .piece {
-  width: var(--tile);
-  height: var(--tile);
+  width: 90%;
+  height: 90%;
   position: relative;
   background-size: 186% 126%;
   background-repeat: no-repeat;
@@ -122,3 +132,29 @@ body {
   z-index: 4;
   pointer-events: none;
 }
+
+.team-selector {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.reg-btn {
+  padding: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.reg-btn.active {
+  opacity: 1;
+  border-color: white;
+  transform: scale(1.05);
+}
+
+.reg-btn.red { background-color: #8b0000; color: white; }
+.reg-btn.blue { background-color: #00008b; color: white; }
+
+.status-bar .red { color: #ff4d4d; }
+.status-bar .blue { color: #4d4dff; }

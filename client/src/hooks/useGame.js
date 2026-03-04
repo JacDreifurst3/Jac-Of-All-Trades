@@ -1,8 +1,20 @@
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-// Change to 5001 if using your Docker port mapping
-const socket = io("http://localhost:5001");
+const socket = io("http://localhost:5001", {
+    transports:["websocket"],
+    upgrade: false,
+    reconnectionAttempts: 5, 
+    timeout: 10000,
+});
+
+socket.on("connect_error", (err) => {
+  console.log("Connection Error Details:", err.message);
+});
+
+socket.on("connect", () => {
+  console.log("Successfully connected to Socket.io server!");
+});
 
 export function useGame(lobbyCode, playerColor) {
   const [board, setBoard] = useState([]);
