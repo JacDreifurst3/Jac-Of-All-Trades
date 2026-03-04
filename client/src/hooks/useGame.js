@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
 const socket = io("http://localhost:5001", {
-    transports:["websocket"],
+    transports: ["websocket"],
     upgrade: false,
-    reconnectionAttempts: 5, 
+    reconnectionAttempts: 5,
     timeout: 10000,
 });
 
@@ -20,27 +20,31 @@ export function useGame(lobbyCode, playerColor) {
   const [board, setBoard] = useState([]);
   const [turn, setTurn] = useState('RED');
   const [error, setError] = useState(null);
+  const [lastBattle, setLastBattle] = useState(null);
 
   useEffect(() => {
     if (!lobbyCode) return;
 
-    // Join the specific lobby
-    socket.emit("joinGame", { lobbyCode , playerColor });
+    socket.emit("joinGame", { lobbyCode, playerColor });
 
-    // Listen for the board update
     socket.on("gameStateUpdate", (state) => {
-      // We flatten the 2D array [10][10] into [100] for easier mapping
       setBoard(state.board.flat());
       setTurn(state.currentPlayer);
     });
 
+    socket.on("moveResult", (data) => {
+      setLastBattle(data);
+      setTimeout(() => setLastBattle(null), 4000);
+    });
+
     socket.on("error", (msg) => {
       setError(msg);
-      setTimeout(() => setError(null), 3000);
+      setTimeout(() => setError(null), 8000);
     });
 
     return () => {
       socket.off("gameStateUpdate");
+      socket.off("moveResult");
       socket.off("error");
     };
   }, [lobbyCode]);
@@ -49,5 +53,5 @@ export function useGame(lobbyCode, playerColor) {
     socket.emit("makeMove", { lobbyCode, fromX, fromY, toX, toY });
   };
 
-  return { board, turn, error, sendMove };
+  return { board, turn, error, sendMove, lastBattle };
 }

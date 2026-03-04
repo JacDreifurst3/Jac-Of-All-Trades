@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap');
+
 :root {
-  --tile: min(9.8vw, 9.8vh);
+  --tile: min(9.8vw, calc((100vh - 110px) / 10));
   --grass: #7dba6f;
   --grass-border: #5a9e4e;
   --lake: #a8b4e8;
@@ -28,7 +30,8 @@ body {
 .board-wrapper {
   position: relative;
   width: calc(var(--tile) * 10);
-  height: calc(var(--tile) * 10);
+  display: flex;
+  flex-direction: column;
 }
 
 .board-bg {
@@ -58,7 +61,6 @@ body {
   filter: brightness(1.2);
 }
 
-
 .pieces-layer {
   display: grid;
 }
@@ -83,17 +85,10 @@ body {
   cursor: pointer;
 }
 
-.piece.red {
-  background-image: url('./assets/redPiece.png');
-}
+.piece.red  { background-image: url('./assets/redPiece.png'); }
+.piece.blue { background-image: url('./assets/bluePiece.png'); }
 
-.piece.blue {
-  background-image: url('./assets/bluePiece.png');
-}
-
-.piece.castle {
-  z-index: 2;
-}
+.piece.castle { z-index: 2; }
 
 .piece.selected {
   outline: 3px solid yellow;
@@ -138,15 +133,82 @@ body {
   transform: scale(1.05);
 }
 
-.reg-btn.red { background-color: #8b0000; color: white; }
+.reg-btn.red  { background-color: #8b0000; color: white; }
 .reg-btn.blue { background-color: #00008b; color: white; }
 
+/* ── Status bar ─────────────────────────────── */
 .status-bar {
-  color : white;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: white;
   display: flex;
-  gap: 20px;
-  padding: 10px;
-
+  align-items: flex-start;
+  gap: 24px;
+  padding: 10px 16px;
+  background: rgba(0,0,0,0.45);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.status-bar .red { color: #ff4d4d; }
-.status-bar .blue { color: #4d4dff; }
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.status-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  max-height: 80px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+.status-msg {
+  font-size: 30px;
+  color: rgba(255, 180, 80, 0.6);
+  letter-spacing: 0.03em;
+}
+
+.status-msg-latest {
+  color: #ffb450;
+  font-weight: 700;
+}
+
+.status-msg-empty {
+  font-size: 30px;
+  color: rgba(255,255,255,0.25);
+  font-style: italic;
+}
+
+.status-bar strong {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.status-bar .red  { color: #ff6b6b; }
+.status-bar .blue { color: #6b8cff; }
+
+/* ── Error toast ────────────────────────────── */
+.error-toast {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  position: absolute;
+  top: -44px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(160, 30, 30, 0.95);
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 100;
+  border: 1px solid rgba(255, 100, 100, 0.4);
+}
