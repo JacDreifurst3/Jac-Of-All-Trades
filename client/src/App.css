@@ -59,13 +59,17 @@ body {
 }
 
 .tile.valid-destination {
-  background-color: rgba(76, 175, 80, 0.4); /* Semi-transparent green */
-  box-shadow: inset 0 0 8px rgba(76, 175, 80, 0.6);
+  outline: 3px;
+  outline-offset: -3px;
+  color:  rgba(231, 8, 186); /* Semi-transparent green */
+  box-shadow: inset 0 0 8px rgba(215, 9, 222, 0.968);
+  z-index: 9;
   cursor: pointer;
+  filter:brightness(1.2);
 }
 
 .tile.valid-destination:hover {
-  background-color: rgba(76, 175, 80, 0.6);
+  background-color: rgba(255, 255, 0, 0.486);
   box-shadow: inset 0 0 12px rgba(76, 175, 80, 0.8);
 }
 
