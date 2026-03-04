@@ -32,6 +32,42 @@ class Board {
     return this.grid[x][y];
   }
 
+  
+  getAvailableMoves(currentSpace){
+    let availableMoves = [];
+    let currentX = currentSpace.getX();
+    let currentY = currentSpace.getY();
+
+    let possibleSpace = this.getSpace(currentX + 1, currentY);
+    if(this.validateMove(currentSpace, possibleSpace)) {
+      availableMoves.push({ x: currentX + 1, y: currentY });
+    }
+
+    possibleSpace = this.getSpace(currentX - 1, currentY);
+    if(this.validateMove(currentSpace, possibleSpace)) {
+      availableMoves.push({ x: currentX - 1, y: currentY });
+    }
+    possibleSpace = this.getSpace(currentX, currentY + 1);
+    if(this.validateMove(currentSpace, possibleSpace)) {
+      availableMoves.push({ x: currentX, y: currentY + 1 });
+    }
+    possibleSpace = this.getSpace(currentX, currentY - 1);
+    if(this.validateMove(currentSpace, possibleSpace)) {
+      availableMoves.push({ x: currentX, y: currentY - 1});
+    }
+    
+    
+
+    return availableMoves;
+  }
+
+  validateMove(currentSpace, possibleSpace){
+    if(possibleSpace && (!possibleSpace.isOccupied() || (possibleSpace.piece.getOwner() != currentSpace.piece.getOwner() && possibleSpace.piece.getOwner() != null))) {
+      return true;
+    }
+    return false;
+  }
+
   generateMove(fromX, fromY, toX, toY) {
     const fromSpace = this.getSpace(fromX, fromY);
     const toSpace = this.getSpace(toX, toY);
