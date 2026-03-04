@@ -28,7 +28,7 @@ io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     // Join a specific lobby/room
-    socket.on("joinGame", (lobbyCode) => {
+    socket.on("joinGame", ({ lobbyCode, playerColor }) => {
         socket.join(lobbyCode);
         
         if (!gameService.getGame(lobbyCode)) {
@@ -36,22 +36,32 @@ io.on("connection", (socket) => {
         }
         
         const game = gameService.getGame(lobbyCode);
+
+        game.assignPlayer(playerColor,socket.id);
+
+        socket.playerColor = playerColor;
         // Send the initial state of game to who joins
-        io.to(lobbyCode).emit("gameStateUpdate", game.getGameState())
-        socket.emit("gameStateUpdate", game.getGameState());
+        socket.emit("gameStateUpdate", game.getGameState(playerColor));
         console.log(`User joined room: ${lobbyCode}`);
     });
 
-    socket.on("makeMove", (data) => {
+    socket.on("makeMove", (data)  => {
         const { lobbyCode, fromX, fromY, toX, toY } = data;
         const game = gameService.getGame(lobbyCode);
+
+        const redId = game.player['RED'];
+        const blueId = game.player['BLUE'];
 
         if (game) {
             try {
                 game.makeMove(fromX, fromY, toX, toY);
                 
-                // Broadcast state to BOTH players in the room
-                io.to(lobbyCode).emit("gameStateUpdate", game.getGameState());
+                if (redId) {
+                    io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+                }
+                if (blueId) {
+                    io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+                }
             } catch (err) {
                 // Send error to the person who made illegal move
                 socket.emit("error", err.message);

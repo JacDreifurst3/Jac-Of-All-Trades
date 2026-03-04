@@ -16,7 +16,15 @@ class Game {
     this.moveHistory = []; // Will be connected to/stored in database at some point 
     this.gameOver = false;
     this.winner = null;
+    this.player = {
+      'RED' : null,
+      'BLUE' : null
+    }
     this.setupInitialPieces(); // initial setup for testing. 
+  }
+
+  assignPlayer(color, socketId) {
+    this.player[color] = socketId;
   }
 
   setupInitialPieces() {
@@ -46,6 +54,10 @@ class Game {
     }
     if (!attacker.canMove()) {
       throw new Error("This piece cannot move");
+    }
+
+    if (attacker.getOwner() != this.currentPlayer) {
+      throw new Error("Cannot move while not your turn");
     }
 
     let result;
@@ -119,7 +131,6 @@ class Game {
   //function to get gamestate for frontend.
   getGameState(forPlayerColor) {
   const fullBoard = this.board.serialize();
-
   // Hide enemy ranks that aren't revealed
   const redactedBoard = fullBoard.map(row => 
     row.map(space => {

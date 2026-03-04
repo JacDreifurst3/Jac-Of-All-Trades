@@ -106,21 +106,6 @@ body {
   inset: 0;
 }
 
-.piece-rank {
-  position: absolute;
-  top: 8%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Georgia', serif;
-  font-size: calc(var(--tile) * 0.22);
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.7);
-  line-height: 1;
-  z-index: 5;
-  user-select: none;
-}
-
 .piece-icon {
   position: absolute;
   top: 50%;
@@ -156,5 +141,6 @@ body {
 .reg-btn.red { background-color: #8b0000; color: white; }
 .reg-btn.blue { background-color: #00008b; color: white; }
 
+.status-bar {color : white}
 .status-bar .red { color: #ff4d4d; }
 .status-bar .blue { color: #4d4dff; }

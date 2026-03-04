@@ -36,7 +36,7 @@ class Board {
     const fromSpace = this.getSpace(fromX, fromY);
     const toSpace = this.getSpace(toX, toY);
 
-    if (!fromSpace || !toSpace || !fromSpace.piece) {
+    if (!fromSpace || !toSpace || !fromSpace.piece || toSpace.isOccupied()) {
       throw new Error("Invalid move");
     }
 

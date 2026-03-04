@@ -25,7 +25,7 @@ export function useGame(lobbyCode, playerColor) {
     if (!lobbyCode) return;
 
     // Join the specific lobby
-    socket.emit("joinGame", lobbyCode);
+    socket.emit("joinGame", { lobbyCode , playerColor });
 
     // Listen for the board update
     socket.on("gameStateUpdate", (state) => {

@@ -89,14 +89,14 @@ export default function App() {
 
 function Piece({ owner, rank }) {
   const isHidden = rank === "HIDDEN";
-  const label = isHidden ? "B" : rank.toString();
+  
+  const label = isHidden ? "" : rank.toString();
 
   return (
     <div className={`piece ${owner.toLowerCase()}`}>
       <div className="piece-icon-wrapper">
         <PieceIcon label={label} className="piece-icon" />
       </div>
-      {!isHidden && <div className="piece-rank">{rank}</div>}
     </div>
   );
 }
