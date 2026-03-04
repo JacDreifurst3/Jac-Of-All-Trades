@@ -16,7 +16,8 @@ socket.on("connect", () => {
   console.log("Successfully connected to Socket.io server!");
 });
 
-export function useGame(lobbyCode, playerColor) {
+// CHANGE: accept onJoinError callback as a third parameter
+export function useGame(lobbyCode, playerColor, onJoinError) {
   const [board, setBoard] = useState([]);
   const [turn, setTurn] = useState('RED');
   const [error, setError] = useState(null);
@@ -48,8 +49,13 @@ export function useGame(lobbyCode, playerColor) {
     });
 
     socket.on("error", (msg) => {
-      setError(msg);
-      setTimeout(() => setError(null), 3000);
+      // CHANGE: if the error is about color being taken, kick back to lobby
+      if (msg.includes("already taken") && onJoinError) {
+        onJoinError();
+      } else {
+        setError(msg);
+        setTimeout(() => setError(null), 3000);
+      }
     });
 
     return () => {
