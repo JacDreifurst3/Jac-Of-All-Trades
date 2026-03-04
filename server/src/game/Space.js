@@ -7,7 +7,7 @@ class Space {
   }
 
   isOccupied() {
-    return this.piece !== null || this.terrain != "LAND";
+    return this.piece != null || this.terrain != "LAND";
   }
 
   placePiece(piece) {
@@ -19,6 +19,20 @@ class Space {
     const removedPiece = this.piece;
     this.piece = null;
     return removedPiece;
+  }
+  
+  //formats space for frontend
+  serialize() {
+    return {
+      x: this.x,
+      y: this.y,
+      terrain: this.terrain,
+      piece: this.piece ? {
+        rank: this.piece.rank,
+        owner: this.piece.owner,
+        revealed: this.piece.isRevealed
+      } : null
+    };
   }
 }
 

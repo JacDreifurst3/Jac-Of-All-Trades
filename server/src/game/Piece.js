@@ -40,6 +40,10 @@ class Piece{
     getRank(){
         return this.rank;
     }
+
+    getOwner(){
+        return this.owner;
+    }
 }
 
 module.exports = Piece;
