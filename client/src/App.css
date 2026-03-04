@@ -1,0 +1,152 @@
+:root {
+  --tile: min(9.8vw, 9.8vh);
+  --grass: #7dba6f;
+  --grass-border: #5a9e4e;
+  --lake: #a8b4e8;
+  --lake-dark: #8a96d0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: #6b1a1a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.board-wrapper {
+  position: relative;
+  width: calc(var(--tile) * 10);
+  height: calc(var(--tile) * 10);
+}
+
+.board-bg {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-template-rows: repeat(10, var(--tile));
+  width: calc(var(--tile) * 10);
+  height: calc(var(--tile) * 10);
+  z-index: 1;
+}
+
+.tile {
+  width: var(--tile);
+  height: var(--tile);
+  display: flex;
+  justify-content: center;
+  align-items: center;       
+  position: relative;
+}
+.tile.grass { background-image: url('./assets/background.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+.tile.lake  { background-image: url('./assets/water.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+.tile.selected { 
+  outline: 3px solid yellow;
+  outline-offset: -3px;
+  z-index: 10;
+  filter: brightness(1.2);
+}
+
+
+.pieces-layer {
+  display: grid;
+}
+
+.castle-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-template-rows: repeat(10, var(--tile));
+  pointer-events: none;
+  z-index: 4;
+}
+
+.piece {
+  width: 90%;
+  height: 90%;
+  position: relative;
+  background-size: 186% 126%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  cursor: pointer;
+}
+
+.piece.red {
+  background-image: url('./assets/redPiece.png');
+}
+
+.piece.blue {
+  background-image: url('./assets/bluePiece.png');
+}
+
+.piece.castle {
+  z-index: 2;
+}
+
+.piece.selected {
+  outline: 3px solid yellow;
+  outline-offset: -3px;
+  filter: brightness(1.3);
+}
+
+.piece-icon-wrapper {
+  position: absolute;
+  inset: 0;
+}
+
+.piece-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.team-selector {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.reg-btn {
+  padding: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.reg-btn.active {
+  opacity: 1;
+  border-color: white;
+  transform: scale(1.05);
+}
+
+.reg-btn.red { background-color: #8b0000; color: white; }
+.reg-btn.blue { background-color: #00008b; color: white; }
+
+.status-bar {
+  color : white;
+  display: flex;
+  gap: 20px;
+  padding: 10px;
+
+}
+.status-bar .red { color: #ff4d4d; }
+.status-bar .blue { color: #4d4dff; }

@@ -1,0 +1,1 @@
+//This will be a userSchema for the data that will be put into MONGO DB
