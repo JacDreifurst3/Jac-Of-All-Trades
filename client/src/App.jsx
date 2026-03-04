@@ -7,8 +7,14 @@ export default function App() {
   const [lobbyInput, setLobbyInput] = useState("");
   const [activeLobby, setActiveLobby] = useState(null);
   const [playerColor, setPlayerColor] = useState("RED");
+  // new state to hold lobby-level errors (e.g. color already taken)
+  const [lobbyError, setLobbyError] = useState(null);
 
-  const { board, turn, error, sendMove } = useGame(activeLobby, playerColor);
+  // pass a callback as third argument that resets to lobby screen on join error
+  const { board, turn, error, sendMove } = useGame(activeLobby, playerColor, () => {
+    setActiveLobby(false);
+    setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
+  });
   const [selectedSpace, setSelectedSpace] = useState(null);
   const displayBoard = playerColor === "BLUE" ? [...board].reverse() : board;
   // Lobby Screen
@@ -16,10 +22,14 @@ export default function App() {
   return (
     <div className="lobby-screen">
       <h1>Stratego</h1>
+      {/* CHANGE: show lobby error message if color was already taken */}
+      {lobbyError && <div className="error-toast">{lobbyError}</div>}
       <div className="setup-controls">
         <input 
           value={lobbyInput} 
-          onChange={(e) => setLobbyInput(e.target.value.toUpperCase())} 
+          onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); 
+            setLobbyError(null); // clear lobby error when user starts typing a new code
+          }}
           placeholder="Enter Lobby Code"
         />
         
@@ -27,11 +37,19 @@ export default function App() {
         <div className="team-selector">
           <button 
             className={`reg-btn red ${playerColor === "RED" ? "active" : ""}`}
-            onClick={() => setPlayerColor("RED")}
+            onClick={() => {
+                setPlayerColor("RED");
+                // clear error when switching colors
+                setLobbyError(null);
+              }}
           >Red Team</button>
           <button 
             className={`reg-btn blue ${playerColor === "BLUE" ? "active" : ""}`}
-            onClick={() => setPlayerColor("BLUE")}
+            onClick={() => {
+                setPlayerColor("BLUE");
+                // clear error when switching colors
+                setLobbyError(null);
+              }}
           >Blue Team</button>
         </div>
 
