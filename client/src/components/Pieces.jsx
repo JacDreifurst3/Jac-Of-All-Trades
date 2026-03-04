@@ -24,8 +24,8 @@ export const PIECES = {
   '2':  { rank: 2,  name: 'Scout',      image: scout      },
   '1':  { rank: 1,  name: 'Spy',        image: spy        },
   'S':  { rank: 1,  name: 'Spy',        image: spy        },
-  'B':  { rank: null, name: 'Bomb',     image: bomb       },
-  'F':  { rank: null, name: 'Flag',     image: flag       },
+  '11':  { rank: null, name: 'Bomb',     image: bomb       },
+  '0':  { rank: null, name: 'Flag',     image: flag       },
 };
 
 export const LAKES = new Set([

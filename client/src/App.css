@@ -141,6 +141,12 @@ body {
 .reg-btn.red { background-color: #8b0000; color: white; }
 .reg-btn.blue { background-color: #00008b; color: white; }
 
-.status-bar {color : white}
+.status-bar {
+  color : white;
+  display: flex;
+  gap: 20px;
+  padding: 10px;
+
+}
 .status-bar .red { color: #ff4d4d; }
 .status-bar .blue { color: #4d4dff; }

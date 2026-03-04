@@ -11,7 +11,6 @@ export default function App() {
   const { board, turn, error, sendMove } = useGame(activeLobby, playerColor);
   const [selectedSpace, setSelectedSpace] = useState(null);
   const displayBoard = playerColor === "BLUE" ? [...board].reverse() : board;
-
   // Lobby Screen
   if (!activeLobby) {
   return (

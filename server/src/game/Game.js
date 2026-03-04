@@ -3,10 +3,10 @@ const Move = require("./Move");
 const Piece = require('./Piece')
 
 const STARTING_LAYOUT = [
-  ["8","2","3","2","7","3","2","2","B","3"],
-  ["3","5","2","B","7","4","B","2","4","2"],
-  ["8","B","6","5","7","2","3","4","4","5"],
-  ["B","F","B","10","S","6","6","6","9","5"],
+  ["8","2","3","2","7","3","2","2","11","3"],
+  ["3","5","2","11","7","4","11","2","4","2"],
+  ["8","11","6","5","7","2","3","4","4","5"],
+  ["11","0","11","10","1","6","6","6","9","5"],
 ];
 
 class Game {
@@ -87,8 +87,9 @@ class Game {
   resolveBattle(attacker, defender, fromSpace, toSpace) {
     attacker.reveal();
     defender.reveal();
+    
     // Flag
-    if (defender.rank === 0) {
+    if (defender.getRank() === 0) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
       this.gameOver = true;
@@ -96,14 +97,14 @@ class Game {
       return "FLAG_CAPTURED";
     }
 
-    if (defender.rank === 11 && attacker.rank === 3) {
+    if (defender.getRank() === 11 && attacker.getRank() === 3) {
       // Miner (rank 3) defuses bomb
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
       return "ATTACKER_WINS";
     }
 
-    if (attacker.rank === 1 && defender.rank === 10) {
+    if (attacker.getRank() === 1 && defender.getRank() === 10) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
       return "ATTACKER_WINS";
