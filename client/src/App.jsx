@@ -10,11 +10,13 @@ export default function App() {
   // new state to hold lobby-level errors (e.g. color already taken)
   const [lobbyError, setLobbyError] = useState(null);
 
+
   // pass a callback as third argument that resets to lobby screen on join error
-  const { board, turn, error, sendMove } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   });
+
   const [selectedSpace, setSelectedSpace] = useState(null);
   const displayBoard = playerColor === "BLUE" ? [...board].reverse() : board;
   // Lobby Screen
@@ -62,15 +64,37 @@ export default function App() {
 }
 
   const handleSquareClick = (space) => {
-    if (!selectedSpace) {
-      // Pick up a piece
-      if (space.piece && space.piece.owner === playerColor) {
-        setSelectedSpace(space);
+    // If it's not this player's turn, block all moves
+    if (turn !== playerColor) {
+      return;
+    }
+
+    const hasOwnPiece = space.piece && space.piece.owner === playerColor;
+    const isEmpty = !space.piece;
+
+    // If no piece is selected yet
+    if (!selectedPiece) {
+      // Only select if it's your piece AND it will have available moves
+      if (hasOwnPiece) {
+        selectPiece(space.x, space.y);
       }
     } else {
-      // Execute move via Socket
-      sendMove(selectedSpace.x, selectedSpace.y, space.x, space.y);
-      setSelectedSpace(null);
+      // A piece is already selected
+      
+      // Clicking empty space or enemy piece clears selection if it's not a valid move
+      const isValidMove = availableMoves.some(move => move.x === space.x && move.y === space.y);
+      
+      if (isValidMove) {
+        // Execute the move
+        sendMove(selectedPiece.x, selectedPiece.y, space.x, space.y);
+        clearSelection();
+      } else if (isEmpty) {
+        // Clicking empty space = deselect
+        clearSelection();
+      } else if (hasOwnPiece) {
+        // Clicking another own piece = switch selection to that piece
+        selectPiece(space.x, space.y);
+      }
     }
   };
 
@@ -84,12 +108,16 @@ export default function App() {
     </div>
 
     <div className="board-bg">
-  {displayBoard.map((space) => (
+  {displayBoard.map((space) => {
+    const isValidDestination = selectedPiece && availableMoves.some(move => move.x === space.x && move.y === space.y);
+    const isSelected = selectedPiece?.x === space.x && selectedPiece?.y === space.y;
+    
+    return (
     <div 
       key={`${space.x},${space.y}`} 
       className={`tile ${space.terrain === "WATER" ? "lake" : "grass"} ${
-        selectedSpace?.x === space.x && selectedSpace?.y === space.y ? "selected" : ""
-      }`}
+        isSelected ? "selected" : ""
+      } ${isValidDestination ? "valid-destination" : ""}`}
       onClick={() => handleSquareClick(space)}
     >
       {space.piece && (
@@ -99,10 +127,12 @@ export default function App() {
         />
       )}
     </div>
-  ))}
+    );
+  })}
 </div>
   </div>
-);
+  );
+}
 
 function Piece({ owner, rank }) {
   const isHidden = rank === "HIDDEN";
@@ -116,5 +146,4 @@ function Piece({ owner, rank }) {
       </div>
     </div>
   );
-}
 }

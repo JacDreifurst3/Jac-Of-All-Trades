@@ -32,6 +32,81 @@ class Board {
     return this.grid[x][y];
   }
 
+  
+  getAvailableMoves(currentSpace){
+    let availableMoves = [];
+    let currentX = currentSpace.getX();
+    let currentY = currentSpace.getY();
+    let maxRange = currentSpace.piece.isScout() ? this.size - 1 : 1;
+
+    // Check right
+    for(let i = 1; i <= maxRange; i++){
+      let possibleSpace = this.getSpace(currentX + i, currentY);
+      if(this.validateMove(currentSpace, possibleSpace)) {
+        availableMoves.push({ x: currentX + i, y: currentY });
+        if(possibleSpace.isOccupied()){
+          break;
+        }
+      } else {
+        break; // Stop this direction if blocked
+      }
+    }
+
+    // Check left
+    for(let i = 1; i <= maxRange; i++){
+      let possibleSpace = this.getSpace(currentX - i, currentY);
+      if(this.validateMove(currentSpace, possibleSpace)) {
+        availableMoves.push({ x: currentX - i, y: currentY });
+        if(possibleSpace.isOccupied()){
+          break;
+        }
+      } else {
+        break; // Stop this direction if blocked
+      }
+    }
+
+    // Check down
+    for(let i = 1; i <= maxRange; i++){
+      let possibleSpace = this.getSpace(currentX, currentY + i);
+      if(this.validateMove(currentSpace, possibleSpace)) {
+        availableMoves.push({ x: currentX, y: currentY + i });
+        if(possibleSpace.isOccupied()){
+          break;
+        }
+      } else {
+        break; // Stop this direction if blocked
+      }
+    }
+
+    // Check up
+    for(let i = 1; i <= maxRange; i++){
+      let possibleSpace = this.getSpace(currentX, currentY - i);
+      if(this.validateMove(currentSpace, possibleSpace)) {
+        availableMoves.push({ x: currentX, y: currentY - i });
+        if(possibleSpace.isOccupied()){
+          break;
+        }
+      } else {
+        break; // Stop this direction if blocked
+      }
+    }
+
+    return availableMoves;
+  }
+
+  validateMove(currentSpace, possibleSpace){
+    if (!possibleSpace) return false;
+    
+    if (possibleSpace.terrain === "WATER") return false;
+    
+    if (!possibleSpace.piece) return true;
+    
+    // Has a piece
+    if (possibleSpace.piece.getOwner() === currentSpace.piece.getOwner()) return false;
+    
+    return true;
+  }
+
   generateMove(fromX, fromY, toX, toY) {
     const fromSpace = this.getSpace(fromX, fromY);
     const toSpace = this.getSpace(toX, toY);

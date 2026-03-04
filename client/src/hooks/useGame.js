@@ -21,6 +21,8 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   const [board, setBoard] = useState([]);
   const [turn, setTurn] = useState('RED');
   const [error, setError] = useState(null);
+  const [availableMoves, setAvailableMoves] = useState([]);
+  const [selectedPiece, setSelectedPiece] = useState(null);
 
   useEffect(() => {
     if (!lobbyCode) return;
@@ -33,6 +35,17 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
       // We flatten the 2D array [10][10] into [100] for easier mapping
       setBoard(state.board.flat());
       setTurn(state.currentPlayer);
+      setAvailableMoves([]);
+      setSelectedPiece(null);
+    });
+
+    socket.on("availableMovesUpdate", (data) => {
+      // Only show selection if the piece actually has moves available
+      if (data.availableMoves.length > 0) {
+        setAvailableMoves(data.availableMoves);
+        setSelectedPiece({ x: data.x, y: data.y });
+      }
+      // If no moves available (e.g., Bomb or Flag), don't select it
     });
 
     socket.on("error", (msg) => {
@@ -47,6 +60,7 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
 
     return () => {
       socket.off("gameStateUpdate");
+      socket.off("availableMovesUpdate");
       socket.off("error");
     };
   }, [lobbyCode]);
@@ -55,5 +69,14 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     socket.emit("makeMove", { lobbyCode, fromX, fromY, toX, toY });
   };
 
-  return { board, turn, error, sendMove };
+  const selectPiece = (x, y) => {
+    socket.emit("selectPiece", { lobbyCode, x, y });
+  };
+
+  const clearSelection = () => {
+    setAvailableMoves([]);
+    setSelectedPiece(null);
+  };
+
+  return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection };
 }

@@ -20,6 +20,14 @@ class Space {
     this.piece = null;
     return removedPiece;
   }
+
+  getX(){
+    return this.x;
+  }
+
+  getY(){
+    return this.y;
+  }
   
   //formats space for frontend
   serialize() {
