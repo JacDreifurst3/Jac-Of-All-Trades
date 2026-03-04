@@ -49,7 +49,7 @@ class Game {
     const moveData = this.board.generateMove(fromX, fromY, toX, toY);
     const { fromSpace, toSpace, attacker, defender } = moveData;
 
-    if (defender && defender.owner === this.currentPlayer) {
+    if (defender && defender.getOwner() === this.currentPlayer) {
       throw new Error("Cannot move into your own piece");
     }
     if (!attacker.canMove()) {
