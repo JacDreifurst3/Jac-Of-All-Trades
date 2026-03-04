@@ -29,7 +29,6 @@ io.on("connection", (socket) => {
 
     // Join a specific lobby/room
     socket.on("joinGame", ({ lobbyCode, playerColor }) => {
-        socket.join(lobbyCode);
         
         if (!gameService.getGame(lobbyCode)) {
             gameService.createGame(lobbyCode);
@@ -37,6 +36,16 @@ io.on("connection", (socket) => {
         
         const game = gameService.getGame(lobbyCode);
 
+        // Check if color is already taken by a different socket
+        const existingId = game.player[playerColor.toUpperCase()];
+        console.log(`Join attempt: lobby=${lobbyCode} color=${playerColor} socket=${socket.id}`);
+        console.log(`Existing ${playerColor} player: ${existingId}`);
+        if (existingId && existingId !== socket.id) {
+            console.log(`BLOCKED: ${socket.id} tried to join as ${playerColor}`);
+            socket.emit("error", `Color ${playerColor} is already taken in lobby ${lobbyCode}.`);
+            return; // Block them from joining
+        }
+        socket.join(lobbyCode);
         game.assignPlayer(playerColor,socket.id);
 
         socket.playerColor = playerColor;
