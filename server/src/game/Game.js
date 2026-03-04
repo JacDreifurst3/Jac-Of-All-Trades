@@ -101,13 +101,13 @@ class Game {
       // Miner (rank 3) defuses bomb
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
-      return "ATTACKER_WINS";
+      return "ATTACKER_DEFUSED_BOMB";
     }
 
     if (attacker.getRank() === 1 && defender.getRank() === 10) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
-      return "ATTACKER_WINS";
+      return "ATTACKER_ASSASINATED_MARSHAL";
     }
 
     if (attacker.rank > defender.rank) {
