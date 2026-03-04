@@ -34,10 +34,10 @@ export default function App() {
     const defName = rankName(defenderRank);
 
     let msg;
-    if (result === "ATTACKER_WINS") msg = `✔ You won: ${atkName} defeated ${defName}`;
-    else if (result === "DEFENDER_WINS") msg = `✘ You lost: ${defName} defeated ${atkName}`;
-    else if (result === "BOTH_DIE") msg = `💥 Draw: ${atkName} and ${defName} both eliminated`;
-    else if (result === "FLAG_CAPTURED") msg = `🏁 ${atkName} captured the Flag!`;
+    if (result === "ATTACKER_WINS") msg = ` You won: ${atkName} defeated ${defName}`;
+    else if (result === "DEFENDER_WINS") msg = ` You lost: ${defName} defeated ${atkName}`;
+    else if (result === "BOTH_DIE") msg = ` Draw: ${atkName} and ${defName} both eliminated`;
+    else if (result === "FLAG_CAPTURED") msg = ` ${atkName} captured the Flag!`;
 
     if (msg) setMessages(prev => [{ id: Date.now(), text: msg }, ...prev].slice(0, 20));
   }, [lastBattle]);
