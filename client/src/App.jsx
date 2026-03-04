@@ -26,25 +26,20 @@ export default function App() {
     }
   }, [error]);
 
+  // Handle incoming battle results from server
   useEffect(() => {
     if (!lastBattle) return;
     const { result, attackerRank, defenderRank } = lastBattle;
     const atkName = rankName(attackerRank);
     const defName = rankName(defenderRank);
-  
+
     let msg;
     if (result === "ATTACKER_WINS") msg = `✔ You won: ${atkName} defeated ${defName}`;
     else if (result === "DEFENDER_WINS") msg = `✘ You lost: ${defName} defeated ${atkName}`;
     else if (result === "BOTH_DIE") msg = `💥 Draw: ${atkName} and ${defName} both eliminated`;
     else if (result === "FLAG_CAPTURED") msg = `🏁 ${atkName} captured the Flag!`;
-  
-    if (msg) {
-      const id = Date.now();
-      setMessages(prev => [{ id, text: msg }, ...prev].slice(0, 20));
-      setTimeout(() => {
-        setMessages(prev => prev.filter(m => m.id !== id));
-      }, 4000);
-    }
+
+    if (msg) setMessages(prev => [{ id: Date.now(), text: msg }, ...prev].slice(0, 20));
   }, [lastBattle]);
 
   const displayBoard = playerColor === "BLUE" ? [...board].reverse() : board;
