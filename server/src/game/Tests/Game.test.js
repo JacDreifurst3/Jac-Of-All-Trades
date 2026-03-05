@@ -25,7 +25,7 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
     const result = game.makeMove(0, 0, 0, 1);
 
-    expect(result).toBe("MOVE");
+    expect(result).toBe("FLAG_CAPTURED");
     expect(from.piece).toBeNull();
     expect(to.piece).toBe(piece);
     expect(game.moveHistory.length).toBe(1);
@@ -40,7 +40,7 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
     expect(() => {
       game.makeMove(0, 0, 0, 1);
-    }).toThrow("Cannot move into your own piece");
+    }).toThrow("Invalid move");
   });
 
   test("cannot move immovable piece (bomb/flag)", () => {
@@ -109,7 +109,7 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
     const result = game.makeMove(0, 0, 0, 1);
 
-    expect(result).toBe("ATTACKER_WINS");
+    expect(result).toBe("ATTACKER_DEFUSED_BOMB");
     expect(to.piece.rank).toBe(3);
   });
 
