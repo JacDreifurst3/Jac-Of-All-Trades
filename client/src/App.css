@@ -156,7 +156,7 @@ body {
 
 .status-bar {
   font-family: 'Cinzel', serif;
-  font-size: 32px;
+  font-size: 17px;
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #e8d5a3;
@@ -188,13 +188,13 @@ body {
   gap: 3px;
   overflow-y: auto;
   max-height: 120px;
-  padding-top: 4px;
+  padding-top: 1px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
 
 .status-msg {
-  font-size: 30px;
+  font-size: 17px;
   color: #d4a843;
   letter-spacing: 0.06em;
 }
@@ -216,8 +216,8 @@ body {
   letter-spacing: 0.1em;
 }
 
-.status-bar .red  { color: #ff2222; font-weight: 700;letter-spacing: 0.02em; font-size: 37px; text-shadow: 0 0 10px rgba(220,40,40,0.7); }
-.status-bar .blue { color: #2255ff; font-weight: 700; letter-spacing: 0.02em; font-size: 37px; text-shadow: 0 0 10px rgba(63, 81, 143, 0.7); }
+.status-bar .red  { color: #ff2222; font-weight: 700;letter-spacing: 0.02em; font-size: 17px; text-shadow: 0 0 10px rgba(220,40,40,0.7); }
+.status-bar .blue { color: #2255ff; font-weight: 700; letter-spacing: 0.02em; font-size: 17px; text-shadow: 0 0 10px rgba(63, 81, 143, 0.7); }
 .error-toast {
   font-family: 'Cinzel', serif;
   font-size: 14px;
