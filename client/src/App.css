@@ -61,16 +61,16 @@ body {
 .tile.valid-destination {
   outline: 3px;
   outline-offset: -3px;
-  color:  rgba(231, 8, 186); /* Semi-transparent green */
-  box-shadow: inset 0 0 8px rgba(215, 9, 222, 0.968);
+  color:  rgb(7, 60, 0); /* Semi-transparent green */
+  box-shadow: inset 0 0 8px rgba(7, 60, 0, 1);
   z-index: 9;
   cursor: pointer;
   filter:brightness(1.2);
 }
 
 .tile.valid-destination:hover {
-  background-color: rgba(255, 255, 0, 0.486);
-  box-shadow: inset 0 0 12px rgba(76, 175, 80, 0.8);
+  background-color: rgba(255, 255, 255, 0.761);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.8);
 }
 
 .pieces-layer {
