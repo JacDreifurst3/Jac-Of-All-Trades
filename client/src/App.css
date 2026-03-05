@@ -157,13 +157,13 @@ body {
 
 .status-bar {
   font-family: 'Cinzel', serif;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #e8d5a3;
   display: flex;
   align-items: stretch;
-  gap: 24px;
+  gap: 13px;
   padding: 5px 15px;
   background: linear-gradient(180deg, #3f0601 0%, #240800 100%);
   border-radius: 4px;
@@ -177,7 +177,7 @@ body {
   align-items: center;
   gap: 20px;
   flex-shrink: 0;
-  padding-right: 20px;
+  padding-right: 11px;
   border-right: 5px solid #8b6914;
   margin: -10px 0;
   padding-top: 10px;
@@ -189,13 +189,13 @@ body {
   gap: 3px;
   overflow-y: auto;
   max-height: 60px;
-  padding-top: 1px;
+  padding-top: 2px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
 
 .status-msg {
-  font-size: 17px;
+  font-size: 14px;
   color: #d4a843;
   letter-spacing: 0.06em;
 }
