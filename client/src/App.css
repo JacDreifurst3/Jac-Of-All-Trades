@@ -157,7 +157,7 @@ body {
 
 .status-bar {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 19px;
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #e8d5a3;
@@ -195,7 +195,7 @@ body {
 }
 
 .status-msg {
-  font-size: 14px;
+  font-size: 18px;
   color: #d4a843;
   letter-spacing: 0.06em;
 }
