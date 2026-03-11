@@ -1,6 +1,7 @@
 const Board = require("./Board");
 const Move = require("./Move");
-const Piece = require('./Piece')
+const Piece = require('./Piece');
+const Player = require('./Player');
 
 const STARTING_LAYOUT = [
   [8,2,3,2,7,3,2,2,11,3],
@@ -18,8 +19,8 @@ class Game {
     this.gameOver = false;
     this.winner = null;
     this.player = {
-      'RED' : null,
-      'BLUE' : null
+      'RED' : new Player("Red"),
+      'BLUE' : new Player("Blue")
     }
     this.setupInitialPieces(); // initial setup for testing. 
   }
@@ -184,9 +185,6 @@ class Game {
   };
 }
 
-setupGame(){
-  
-}
 
 }
 
