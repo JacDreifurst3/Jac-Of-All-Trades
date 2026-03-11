@@ -107,7 +107,7 @@ export default function App() {
 
       <div className="status-bar">
   <div className="status-info">
-    <span style={{ textAlign: "center" }}>Lobby: <strong>{activeLobby}</strong></span>
+    <span style={{ textAlign: "center" }}>Lobby Code: <strong>{activeLobby}</strong></span>
     <span style={{ textAlign: "center" }}>Turn: <strong className={turn.toLowerCase()}>{turn}</strong></span>
   </div>
   <div className="status-messages" style={{ alignItems: "center" }}>
