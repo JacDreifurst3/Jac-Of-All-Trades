@@ -2,7 +2,7 @@ class Player{
     constructor(color){
         this.color = color;
         this.availablePieces = this.startingPieces();
-        this.layout = Array.from({ length: 10 }, () => new Array(10).fill(null));
+        this.layout = Array.from({ length: 4 }, () => new Array(10).fill(null));
     }
 
     startingPieces(){
@@ -24,13 +24,31 @@ class Player{
     }
     
     validSpaces(){
-        for(const integer of this.layout){
-            
+        let availableSpaces = [];
+        for(let i = 0; i < this.layout.length; i++){
+            for(let j = 0; j < this.layout[i].length; j++){
+                if(this.layout[i][j] == null){
+                    availableSpaces.push({ x: i, y: j });
+                }
+            }
+        }
+        
+        return availableSpaces;
+    }
+
+    placePiece(x, y, rank){
+        if(this.availablePieces.get(rank) != null){
+            if(this.availablePieces.get(rank) == 1){
+                this.availablePieces.delete(rank);
+            } else {
+                this.availablePieces.set(rank, this.availablePieces.get(rank) - 1);
+            }
+            this.layout[x][y] = rank;
         }
     }
 
-    placePiece(){
-
+    getLayout(){
+        return this.layout;
     }
 }
 
