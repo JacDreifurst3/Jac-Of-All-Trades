@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { PieceIcon, LAKES, BOARD_SIZE } from "./components/Pieces.jsx";
 import { useGame } from "./hooks/useGame";
@@ -10,12 +10,15 @@ const RANK_NAMES = {
 };
 
 const rankName = (rank) => RANK_NAMES[rank] ?? `Rank ${rank}`;
+const rankLabel = (rank) => rank === 11 ? "11" : rank === 0 ? "0" : String(rank);
 
 export default function App() {
   const [lobbyInput, setLobbyInput] = useState("");
   const [activeLobby, setActiveLobby] = useState(null);
   const [playerColor, setPlayerColor] = useState("RED");
   const [lobbyError, setLobbyError] = useState(null);
+  const [battleLog, setBattleLog] = useState([]);
+  const [logOpen, setLogOpen] = useState(false);
 
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
@@ -32,9 +35,11 @@ export default function App() {
 
   useEffect(() => {
     if (!lastBattle) return;
-    const { result, attackerRank, defenderRank } = lastBattle;
+    const { result, attackerRank, defenderRank, attackerColor, defenderColor } = lastBattle;
     const atkName = rankName(attackerRank);
     const defName = rankName(defenderRank);
+    const atkColor = attackerColor ?? "RED";
+    const defColor = defenderColor ?? "BLUE";
 
     let msg;
     if (result === "ATTACKER_WINS") msg = ` ${atkName} defeated ${defName}`;
@@ -43,6 +48,19 @@ export default function App() {
     else if (result === "FLAG_CAPTURED") msg = ` ${atkName} captured the Flag!`;
 
     if (msg) setMessages([{ id: Date.now(), text: msg }]);
+    const newEntry = {
+      id: Date.now(),
+      result,
+      attackerRank,
+      defenderRank,
+      atkLabel: rankLabel(attackerRank),
+      defLabel: rankLabel(defenderRank),
+      atkName,
+      defName,
+      atkColor,
+      defColor,
+    };
+    setBattleLog(prev => [newEntry, ...prev]);
 
     setLastBattle(null);
   }, [lastBattle]);
@@ -106,21 +124,21 @@ export default function App() {
       {error && <div className="error-toast">{error}</div>}
 
       <div className="status-bar">
-  <div className="status-info">
-    <span style={{ textAlign: "center" }}>Lobby Code: <strong>{activeLobby}</strong></span>
-    <span style={{ textAlign: "center" }}>Turn: <strong className={turn.toLowerCase()}>{turn}</strong></span>
-  </div>
-  <div className="status-messages" style={{ alignItems: "center" }}>
-    {messages.length === 0
-      ? <span className="status-msg-empty"></span>
-      : messages.map((m, i) => (
-          <span key={m.id} className={`status-msg ${i === 0 ? "status-msg-latest" : ""}`}>
-            {m.text}
-          </span>
-        ))
-    }
-  </div>
-</div>
+        <div className="status-info">
+          <span style={{ textAlign: "center" }}>Lobby Code: <strong>{activeLobby}</strong></span>
+          <span style={{ textAlign: "center" }}>Turn: <strong className={turn.toLowerCase()}>{turn}</strong></span>
+        </div>
+        <div className="status-messages" style={{ alignItems: "center" }}>
+          {messages.length === 0
+            ? <span className="status-msg-empty"></span>
+            : messages.map((m, i) => (
+                <span key={m.id} className={`status-msg ${i === 0 ? "status-msg-latest" : ""}`}>
+                  {m.text}
+                </span>
+              ))
+          }
+        </div>
+      </div>
 
       <div className="board-bg">
         {displayBoard.map((space) => {
@@ -140,6 +158,7 @@ export default function App() {
           );
         })}
       </div>
+      <BattleLog entries={battleLog} open={logOpen} onToggle={() => setLogOpen(o => !o)} />
     </div>
   );
 }
@@ -150,6 +169,81 @@ function Piece({ owner, rank }) {
     <div className={`piece ${owner.toLowerCase()}`}>
       <div className="piece-icon-wrapper">
         <PieceIcon label={label} className="piece-icon" />
+      </div>
+    </div>
+  );
+}
+
+function BattleLog({ entries, open, onToggle }) {
+  const listRef = useRef(null);
+
+  return (
+    <div className="battle-log">
+      {open && (
+        <div className="battle-log__panel">
+          <div className="battle-log__scroll" ref={listRef}>
+            {entries.length === 0 ? (
+              <p className="battle-log__empty">No battles yet…</p>
+            ) : (
+              entries.map((e) => <BattleEntry key={e.id} entry={e} />)
+            )}
+          </div>
+        </div>
+      )}
+
+      <button className="battle-log__toggle" onClick={onToggle}>
+        ⚔ Battle Log
+        {entries.length > 0 && (
+          <span className="battle-log__count">{entries.length}</span>
+        )}
+        <span style={{ fontSize: 12, color: "#8b6914" }}>{open ? "▾" : "▴"}</span>
+      </button>
+    </div>
+  );
+}
+
+function BattleEntry({ entry }) {
+  const { result, atkLabel, defLabel, atkName, defName, atkColor, defColor } = entry;
+
+  const atkDead = result === "DEFENDER_WINS" || result === "BOTH_DIE";
+  const defDead = result === "ATTACKER_WINS" || result === "BOTH_DIE" || result === "FLAG_CAPTURED";
+
+  const atkColorLow = (atkColor ?? "RED").toLowerCase();
+  const defColorLow = (defColor ?? "BLUE").toLowerCase();
+  const atkLabel2 = (atkColor ?? "RED").charAt(0) + (atkColor ?? "RED").slice(1).toLowerCase();
+  const defLabel2 = (defColor ?? "BLUE").charAt(0) + (defColor ?? "BLUE").slice(1).toLowerCase();
+
+  return (
+    <div className={`battle-entry battle-entry--${result.toLowerCase()}`}>
+      <div className={`battle-piece battle-piece--atk ${atkDead ? "battle-piece--dead" : "battle-piece--alive"}`}>
+        <div className="battle-piece__token piece red">
+          <div className="piece-icon-wrapper">
+            <PieceIcon label={atkLabel} className="piece-icon" />
+          </div>
+        </div>
+        <span className="battle-piece__name">{atkName}</span>
+      </div>
+
+      <div className="battle-vs">
+        <span className="battle-vs__label">
+          {result === "BOTH_DIE" ? "✕✕" : result === "ATTACKER_WINS" || result === "FLAG_CAPTURED" ? "▶" : "◀"}
+        </span>
+      </div>
+
+      <div className={`battle-piece battle-piece--def ${defDead ? "battle-piece--dead" : "battle-piece--alive"}`}>
+        <div className="battle-piece__token piece blue">
+          <div className="piece-icon-wrapper">
+            <PieceIcon label={defLabel} className="piece-icon" />
+          </div>
+        </div>
+        <span className="battle-piece__name">{defName}</span>
+      </div>
+
+      <div className="battle-outcome">
+        {result === "ATTACKER_WINS" && <span className={`battle-tag battle-tag--${atkColorLow}`}>{atkLabel2} Defeats</span>}
+        {result === "DEFENDER_WINS" && <span className={`battle-tag battle-tag--${defColorLow}`}>{defLabel2} Defeats</span>}
+        {result === "BOTH_DIE"      && <span className="battle-tag battle-tag--draw">Both Eliminated</span>}
+        {result === "FLAG_CAPTURED" && <span className="battle-tag battle-tag--flag">🚩 Flag Captured!</span>}
       </div>
     </div>
   );
