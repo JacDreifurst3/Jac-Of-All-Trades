@@ -3,6 +3,7 @@ class Player{
         this.color = color;
         this.availablePieces = this.startingPieces();
         this.layout = Array.from({ length: 4 }, () => new Array(10).fill(null));
+        this.setup = "INCOMPLETE"
     }
 
     startingPieces(){
@@ -23,8 +24,14 @@ class Player{
         return startingPieces;
     }
 
+    isSetupComplete(){
+        return this.availablePieces == null;
+    }
+
     placePiece(x, y, rank){
-        if(this.layout[x][y] == null){
+        if(this.isSetupComplete()){
+            this.setup = "COMPLETE";
+        } else if(this.layout[x][y] == null){
             if(this.availablePieces.get(rank) != null){
                 if(this.availablePieces.get(rank) == 1){
                     this.availablePieces.delete(rank);

@@ -8,7 +8,7 @@ class Game {
     this.board = new Board();
     this.currentPlayer = "RED"; // Make and connect with Player.js at some point?
     this.moveHistory = []; // Will be connected to/stored in database at some point 
-    this.gamePhase = "setup";
+    this.gamePhase = "SETUP";
     this.gameOver = false;
     this.winner = null;
     this.player = {

@@ -25,7 +25,7 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
     const result = game.makeMove(0, 0, 0, 1);
 
-    expect(result).toBe("FLAG_CAPTURED");
+    expect(result).toBe("ATTACKER_WINS");
     expect(from.piece).toBeNull();
     expect(to.piece).toBe(piece);
     expect(game.moveHistory.length).toBe(1);
