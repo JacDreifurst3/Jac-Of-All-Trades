@@ -210,8 +210,8 @@ function CapturedLog({ pieces, playerColor }) {
   const redPieces  = pieces.filter(p => p.color === "RED");
   const [topPieces, topLabel, topClass, bottomPieces, bottomLabel, bottomClass] =
     playerColor === "BLUE"
-      ? [bluePieces, "Blue Lost", "blue", redPieces,  "Red Lost",  "red"]
-      : [redPieces,  "Red Lost",  "red",  bluePieces, "Blue Lost", "blue"];
+      ? [bluePieces, "Blue ", "blue", redPieces,  "Red ",  "red"]
+      : [redPieces,  "Red ",  "red",  bluePieces, "Blue ", "blue"];
 
   const renderPiece = (p) => (
     <div key={p.id} className="captured-entry">
