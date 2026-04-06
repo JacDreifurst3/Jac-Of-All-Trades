@@ -18,7 +18,6 @@ export default function App() {
   const [playerColor, setPlayerColor] = useState("RED");
   const [lobbyError, setLobbyError] = useState(null);
   const [battleLog, setBattleLog] = useState([]);
-  const [logOpen, setLogOpen] = useState(false);
 
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
@@ -26,6 +25,7 @@ export default function App() {
   });
 
   const [messages, setMessages] = useState([]);
+  const attackerColorRef = useRef(null);
 
   useEffect(() => {
     if (error) {
@@ -38,8 +38,8 @@ export default function App() {
     const { result, attackerRank, defenderRank, attackerColor, defenderColor } = lastBattle;
     const atkName = rankName(attackerRank);
     const defName = rankName(defenderRank);
-    const atkColor = attackerColor ?? "RED";
-    const defColor = defenderColor ?? "BLUE";
+    const atkColor = attackerColor ?? attackerColorRef.current ?? playerColor;
+    const defColor = defenderColor ?? (atkColor === "RED" ? "BLUE" : "RED");
 
     let msg;
     if (result === "ATTACKER_WINS") msg = ` ${atkName} defeated ${defName}`;
@@ -48,6 +48,7 @@ export default function App() {
     else if (result === "FLAG_CAPTURED") msg = ` ${atkName} captured the Flag!`;
 
     if (msg) setMessages([{ id: Date.now(), text: msg }]);
+
     const newEntry = {
       id: Date.now(),
       result,
@@ -61,9 +62,17 @@ export default function App() {
       defColor,
     };
     setBattleLog(prev => [newEntry, ...prev]);
-
     setLastBattle(null);
   }, [lastBattle]);
+
+  const capturedPieces = battleLog.flatMap((e) => {
+    const pieces = [];
+    const atkDead = e.result === "DEFENDER_WINS" || e.result === "BOTH_DIE";
+    const defDead = e.result === "ATTACKER_WINS" || e.result === "BOTH_DIE" || e.result === "FLAG_CAPTURED";
+    if (atkDead) pieces.push({ id: e.id + "-a", label: e.atkLabel, name: e.atkName, color: e.atkColor });
+    if (defDead) pieces.push({ id: e.id + "-d", label: e.defLabel, name: e.defName, color: e.defColor });
+    return pieces;
+  });
 
   const displayBoard = playerColor === "BLUE" ? [...board].reverse() : board;
 
@@ -98,7 +107,6 @@ export default function App() {
 
   const handleSquareClick = (space) => {
     if (turn !== playerColor) return;
-
     const hasOwnPiece = space.piece && space.piece.owner === playerColor;
     const isEmpty = !space.piece;
 
@@ -106,9 +114,9 @@ export default function App() {
       if (hasOwnPiece) selectPiece(space.x, space.y);
     } else {
       const isValidMove = availableMoves.some(move => move.x === space.x && move.y === space.y);
-
       if (isValidMove) {
         setMessages([]);
+        attackerColorRef.current = turn;
         sendMove(selectedPiece.x, selectedPiece.y, space.x, space.y);
         clearSelection();
       } else if (isEmpty) {
@@ -120,45 +128,49 @@ export default function App() {
   };
 
   return (
-    <div className="board-wrapper">
-      {error && <div className="error-toast">{error}</div>}
+    <div className="game-layout">
+      <BattleLog entries={battleLog} />
 
-      <div className="status-bar">
-        <div className="status-info">
-          <span style={{ textAlign: "center" }}>Lobby Code: <strong>{activeLobby}</strong></span>
-          <span style={{ textAlign: "center" }}>Turn: <strong className={turn.toLowerCase()}>{turn}</strong></span>
+      <div className="board-wrapper">
+        {error && <div className="error-toast">{error}</div>}
+
+        <div className="status-bar">
+          <div className="status-info">
+            <span style={{ textAlign: "center" }}>Lobby Code: <strong>{activeLobby}</strong></span>
+            <span style={{ textAlign: "center" }}>Turn: <strong className={turn.toLowerCase()}>{turn}</strong></span>
+          </div>
+          <div className="status-messages" style={{ alignItems: "center" }}>
+            {messages.length === 0
+              ? <span className="status-msg-empty"></span>
+              : messages.map((m, i) => (
+                  <span key={m.id} className={`status-msg ${i === 0 ? "status-msg-latest" : ""}`}>
+                    {m.text}
+                  </span>
+                ))
+            }
+          </div>
         </div>
-        <div className="status-messages" style={{ alignItems: "center" }}>
-          {messages.length === 0
-            ? <span className="status-msg-empty"></span>
-            : messages.map((m, i) => (
-                <span key={m.id} className={`status-msg ${i === 0 ? "status-msg-latest" : ""}`}>
-                  {m.text}
-                </span>
-              ))
-          }
+
+        <div className="board-bg">
+          {displayBoard.map((space) => {
+            const isValidDestination = selectedPiece && availableMoves.some(move => move.x === space.x && move.y === space.y);
+            const isSelected = selectedPiece?.x === space.x && selectedPiece?.y === space.y;
+            return (
+              <div
+                key={`${space.x},${space.y}`}
+                className={`tile ${space.terrain === "WATER" ? "lake" : "grass"} ${isSelected ? "selected" : ""} ${isValidDestination ? "valid-destination" : ""}`}
+                onClick={() => handleSquareClick(space)}
+              >
+                {space.piece && (
+                  <Piece owner={space.piece.owner} rank={space.piece.rank} />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div className="board-bg">
-        {displayBoard.map((space) => {
-          const isValidDestination = selectedPiece && availableMoves.some(move => move.x === space.x && move.y === space.y);
-          const isSelected = selectedPiece?.x === space.x && selectedPiece?.y === space.y;
-
-          return (
-            <div
-              key={`${space.x},${space.y}`}
-              className={`tile ${space.terrain === "WATER" ? "lake" : "grass"} ${isSelected ? "selected" : ""} ${isValidDestination ? "valid-destination" : ""}`}
-              onClick={() => handleSquareClick(space)}
-            >
-              {space.piece && (
-                <Piece owner={space.piece.owner} rank={space.piece.rank} />
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <BattleLog entries={battleLog} open={logOpen} onToggle={() => setLogOpen(o => !o)} />
+      <CapturedLog pieces={capturedPieces} playerColor={playerColor} />
     </div>
   );
 }
@@ -174,40 +186,81 @@ function Piece({ owner, rank }) {
   );
 }
 
-function BattleLog({ entries, open, onToggle }) {
+function BattleLog({ entries }) {
   const listRef = useRef(null);
+  return (
+    <div className="battle-log battle-log--sidebar">
+      <div className="battle-log__header">
+        ⚔ Battle Log
+        {entries.length > 0 && <span className="battle-log__count">{entries.length}</span>}
+      </div>
+      <div className="battle-log__scroll" ref={listRef}>
+        {entries.length === 0
+          ? <p className="battle-log__empty">No battles yet…</p>
+          : entries.map((e) => <BattleEntry key={e.id} entry={e} />)
+        }
+      </div>
+    </div>
+  );
+}
+
+function CapturedLog({ pieces, playerColor }) {
+  const listRef = useRef(null);
+  const bluePieces = pieces.filter(p => p.color === "BLUE");
+  const redPieces  = pieces.filter(p => p.color === "RED");
+  const [topPieces, topLabel, topClass, bottomPieces, bottomLabel, bottomClass] =
+    playerColor === "BLUE"
+      ? [bluePieces, "Blue Lost", "blue", redPieces,  "Red Lost",  "red"]
+      : [redPieces,  "Red Lost",  "red",  bluePieces, "Blue Lost", "blue"];
+
+  const renderPiece = (p) => (
+    <div key={p.id} className="captured-entry">
+      <div className={`battle-piece__token piece ${p.color.toLowerCase()} battle-piece--dead`}>
+        <div className="piece-icon-wrapper">
+          <PieceIcon label={p.label} className="piece-icon" />
+        </div>
+      </div>
+      <span className="captured-entry__name">{p.name}</span>
+    </div>
+  );
 
   return (
-    <div className="battle-log">
-      {open && (
-        <div className="battle-log__panel">
-          <div className="battle-log__scroll" ref={listRef}>
-            {entries.length === 0 ? (
-              <p className="battle-log__empty">No battles yet…</p>
-            ) : (
-              entries.map((e) => <BattleEntry key={e.id} entry={e} />)
-            )}
-          </div>
-        </div>
-      )}
-
-      <button className="battle-log__toggle" onClick={onToggle}>
-        ⚔ Battle Log
-        {entries.length > 0 && (
-          <span className="battle-log__count">{entries.length}</span>
+    <div className="battle-log battle-log--sidebar">
+      <div className="battle-log__header">
+        🏴 Pieces Captured
+        {pieces.length > 0 && <span className="battle-log__count">{pieces.length}</span>}
+      </div>
+      <div className="battle-log__scroll--split">
+        {pieces.length === 0 ? (
+          <p className="battle-log__empty">No captures yet…</p>
+        ) : (
+          <>
+            <div className="captured-section">
+              <div className={`captured-section__label ${topClass}`}>{topLabel}</div>
+              {topPieces.length === 0
+                ? <p className="battle-log__empty" style={{ padding: "6px 14px" }}>None</p>
+                : topPieces.map(renderPiece)
+              }
+            </div>
+            <div className="captured-section__divider" />
+            <div className="captured-section">
+              <div className={`captured-section__label ${bottomClass}`}>{bottomLabel}</div>
+              {bottomPieces.length === 0
+                ? <p className="battle-log__empty" style={{ padding: "6px 14px" }}>None</p>
+                : bottomPieces.map(renderPiece)
+              }
+            </div>
+          </>
         )}
-        <span style={{ fontSize: 12, color: "#8b6914" }}>{open ? "▾" : "▴"}</span>
-      </button>
+      </div>
     </div>
   );
 }
 
 function BattleEntry({ entry }) {
   const { result, atkLabel, defLabel, atkName, defName, atkColor, defColor } = entry;
-
   const atkDead = result === "DEFENDER_WINS" || result === "BOTH_DIE";
   const defDead = result === "ATTACKER_WINS" || result === "BOTH_DIE" || result === "FLAG_CAPTURED";
-
   const atkColorLow = (atkColor ?? "RED").toLowerCase();
   const defColorLow = (defColor ?? "BLUE").toLowerCase();
   const atkLabel2 = (atkColor ?? "RED").charAt(0) + (atkColor ?? "RED").slice(1).toLowerCase();
@@ -216,29 +269,26 @@ function BattleEntry({ entry }) {
   return (
     <div className={`battle-entry battle-entry--${result.toLowerCase()}`}>
       <div className={`battle-piece battle-piece--atk ${atkDead ? "battle-piece--dead" : "battle-piece--alive"}`}>
-        <div className="battle-piece__token piece red">
+        <div className={`battle-piece__token piece ${atkColorLow}`}>
           <div className="piece-icon-wrapper">
             <PieceIcon label={atkLabel} className="piece-icon" />
           </div>
         </div>
         <span className="battle-piece__name">{atkName}</span>
       </div>
-
       <div className="battle-vs">
         <span className="battle-vs__label">
           {result === "BOTH_DIE" ? "✕✕" : result === "ATTACKER_WINS" || result === "FLAG_CAPTURED" ? "▶" : "◀"}
         </span>
       </div>
-
       <div className={`battle-piece battle-piece--def ${defDead ? "battle-piece--dead" : "battle-piece--alive"}`}>
-        <div className="battle-piece__token piece blue">
+        <div className={`battle-piece__token piece ${defColorLow}`}>
           <div className="piece-icon-wrapper">
             <PieceIcon label={defLabel} className="piece-icon" />
           </div>
         </div>
         <span className="battle-piece__name">{defName}</span>
       </div>
-
       <div className="battle-outcome">
         {result === "ATTACKER_WINS" && <span className={`battle-tag battle-tag--${atkColorLow}`}>{atkLabel2} Defeats</span>}
         {result === "DEFENDER_WINS" && <span className={`battle-tag battle-tag--${defColorLow}`}>{defLabel2} Defeats</span>}
