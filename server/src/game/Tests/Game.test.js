@@ -7,6 +7,7 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
   beforeEach(() => {
     game = new Game();
+    game.gamePhase = "PLAY"; // Set to PLAY for testing moves
   });
 
   test("game initializes correctly", () => {
@@ -25,7 +26,7 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
     const result = game.makeMove(0, 0, 0, 1);
 
-    expect(result).toBe("ATTACKER_WINS");
+    expect(result).toBe("MOVE");
     expect(from.piece).toBeNull();
     expect(to.piece).toBe(piece);
     expect(game.moveHistory.length).toBe(1);
@@ -138,6 +139,20 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
     expect(result).toBe("ATTACKER_ASSASINATED_MARSHAL");
     expect(to.piece.rank).toBe(1);
+  });
+
+  test("placePiece places piece in player layout", () => {
+    game.gamePhase = "SETUP";
+    game.placePiece("RED", 0, 0, 5);
+    expect(game.player.RED.getLayout()[0][0]).toBe(5);
+    expect(game.player.RED.getAvailablePieces().get(5)).toBe(3);
+  });
+
+  test("placePiece throws if not setup phase", () => {
+    game.gamePhase = "PLAY";
+    expect(() => {
+      game.placePiece("RED", 0, 0, 5);
+    }).toThrow("Not in setup phase");
   });
 
   test("switchTurn changes currentPlayer", () => {

@@ -11,20 +11,31 @@ class Game {
     this.gamePhase = "SETUP";
     this.gameOver = false;
     this.winner = null;
-    this.player = {
-      'RED' : new Player("Red"),
-      'BLUE' : new Player("Blue")
+    this.players = {
+      'RED' : { socketId: null, player: new Player("Red") },
+      'BLUE' : { socketId: null, player: new Player("Blue") }
     }
-    this.setupInitialPieces(); 
+    // this.setupInitialPieces(); // Moved to when setup is complete
   }
 
   assignPlayer(color, socketId) {
-    this.player[color] = socketId;
+    this.players[color].socketId = socketId;
+  }
+
+  placePiece(playerColor, x, y, rank) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.placePiece(x, y, rank);
+    if (this.players.RED.player.isSetupComplete() && this.players.BLUE.player.isSetupComplete()) {
+      this.gamePhase = "PLAY";
+      this.setupInitialPieces();
+    }
   }
 
   setupInitialPieces() {
     // Populate Blue
-    const blueLayout = this.player.BLUE.getLayout();
+    const blueLayout = this.players.BLUE.player.getLayout();
     for (let r = 0; r < blueLayout.length; r++) {
       for (let c = 0; c < blueLayout[0].length; c++) {
         const rank = blueLayout[3 - r][c]; 
@@ -33,7 +44,7 @@ class Game {
     }
 
     // Populate Red
-    const redLayout = this.player.RED.getLayout();
+    const redLayout = this.players.RED.player.getLayout();
     for (let r = 0; r < redLayout.length; r++) {
       for (let c = 0; c < redLayout[0].length; c++) {
         const rank = redLayout[r][c];
@@ -43,6 +54,9 @@ class Game {
   }
 
   makeMove(fromX, fromY, toX, toY) {
+    if (this.gamePhase !== "PLAY") {
+      throw new Error("Game not started yet");
+    }
     const moveData = this.board.generateMove(fromX, fromY, toX, toY);
     const { fromSpace, toSpace, attacker, defender } = moveData;
 
@@ -176,7 +190,10 @@ class Game {
     board: redactedBoard,
     currentPlayer: this.currentPlayer,
     gameOver: this.gameOver,
-    winner: this.winner
+    winner: this.winner,
+    gamePhase: this.gamePhase,
+    availablePieces: Object.fromEntries(this.players[forPlayerColor].player.getAvailablePieces()),
+    setupComplete: this.players[forPlayerColor].player.isSetupComplete()
   };
 }
 
