@@ -3,13 +3,6 @@ const Move = require("./Move");
 const Piece = require('./Piece');
 const Player = require('./Player');
 
-const STARTING_LAYOUT = [
-  [8,2,3,2,7,3,2,2,11,3],
-  [3,5,2,11,7,4,11,2,4,2],
-  [8,11,6,5,7,2,3,4,4,5],
-  [11,0,11,10,1,6,6,6,9,5],
-];
-
 class Game {
   constructor() {
     this.board = new Board();
@@ -22,7 +15,7 @@ class Game {
       'RED' : new Player("Red"),
       'BLUE' : new Player("Blue")
     }
-    this.setupInitialPieces(); // initial setup for testing. 
+    this.setupInitialPieces(); 
   }
 
   assignPlayer(color, socketId) {
@@ -31,17 +24,19 @@ class Game {
 
   setupInitialPieces() {
     // Populate Blue
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 10; c++) {
-        const rank = STARTING_LAYOUT[3 - r][c]; 
+    const blueLayout = this.player.BLUE.getLayout();
+    for (let r = 0; r < blueLayout.length; r++) {
+      for (let c = 0; c < blueLayout[0].length; c++) {
+        const rank = blueLayout[3 - r][c]; 
         this.board.getSpace(r, c).placePiece(new Piece(rank, "BLUE"));
       }
     }
 
     // Populate Red
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 10; c++) {
-        const rank = STARTING_LAYOUT[r][c];
+    const redLayout = this.player.RED.getLayout();
+    for (let r = 0; r < redLayout.length; r++) {
+      for (let c = 0; c < redLayout[0].length; c++) {
+        const rank = redLayout[r][c];
         this.board.getSpace(r + 6, c).placePiece(new Piece(rank, "RED"));
       }
     }
