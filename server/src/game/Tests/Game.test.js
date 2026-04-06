@@ -126,4 +126,63 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     expect(game.gameOver).toBe(true);
     expect(game.winner).toBe("RED");
   });
+
+  test("spy (1) assassinates marshal (10)", () => {
+    const from = game.board.getSpace(0, 0);
+    const to = game.board.getSpace(0, 1);
+
+    from.placePiece(new Piece(1, "RED")); // Spy
+    to.placePiece(new Piece(10, "BLUE")); // Marshal
+
+    const result = game.makeMove(0, 0, 0, 1);
+
+    expect(result).toBe("ATTACKER_ASSASINATED_MARSHAL");
+    expect(to.piece.rank).toBe(1);
+  });
+
+  test("switchTurn changes currentPlayer", () => {
+    expect(game.currentPlayer).toBe("RED");
+    game.switchTurn();
+    expect(game.currentPlayer).toBe("BLUE");
+    game.switchTurn();
+    expect(game.currentPlayer).toBe("RED");
+  });
+
+  test("getAvailableMovesForPiece returns moves for movable piece", () => {
+    const space = game.board.getSpace(0, 0);
+    space.placePiece(new Piece(5, "RED")); // Movable piece
+    const moves = game.getAvailableMovesForPiece(0, 0);
+    expect(Array.isArray(moves)).toBe(true);
+    // Assuming board allows some moves, e.g., to (0,1) if empty
+    expect(moves.length).toBeGreaterThan(0);
+  });
+
+  test("getAvailableMovesForPiece returns empty for immovable piece", () => {
+    const space = game.board.getSpace(0, 0);
+    space.placePiece(new Piece(11, "RED")); // Bomb, immovable
+    const moves = game.getAvailableMovesForPiece(0, 0);
+    expect(moves).toEqual([]);
+  });
+
+  test("getAvailableMovesForPiece returns empty for enemy piece", () => {
+    const space = game.board.getSpace(0, 0);
+    space.placePiece(new Piece(5, "BLUE")); // Enemy piece
+    const moves = game.getAvailableMovesForPiece(0, 0);
+    expect(moves).toEqual([]);
+  });
+
+  test("getGameState redacts enemy pieces", () => {
+    // Place a red piece
+    game.board.getSpace(0, 0).placePiece(new Piece(5, "RED"));
+    // Place a blue piece
+    game.board.getSpace(0, 1).placePiece(new Piece(6, "BLUE"));
+
+    const state = game.getGameState("RED");
+    expect(state.board[0][0].piece.rank).toBe(5); // Own piece visible
+    expect(state.board[0][1].piece.rank).toBe("HIDDEN"); // Enemy hidden
+    expect(state.board[0][1].piece.name).toBe("Enemy Piece");
+    expect(state.currentPlayer).toBe("RED");
+    expect(state.gameOver).toBe(false);
+    expect(state.winner).toBe(null);
+  });
 });

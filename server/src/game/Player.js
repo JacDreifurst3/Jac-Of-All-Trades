@@ -19,19 +19,18 @@ class Player{
             [8, 2],
             [9, 1],
             [10, 1],
+            [11, 6],
         ]);
 
         return startingPieces;
     }
 
     isSetupComplete(){
-        return this.availablePieces == null;
+        return this.setup === "COMPLETE";
     }
 
     placePiece(x, y, rank){
-        if(this.isSetupComplete()){
-            this.setup = "COMPLETE";
-        } else if(this.layout[x][y] == null){
+        if(this.layout[x][y] == null){
             if(this.availablePieces.get(rank) != null){
                 if(this.availablePieces.get(rank) == 1){
                     this.availablePieces.delete(rank);
@@ -39,6 +38,9 @@ class Player{
                     this.availablePieces.set(rank, this.availablePieces.get(rank) - 1);
                 }
                 this.layout[x][y] = rank;
+                if (this.availablePieces.size === 0) {
+                    this.setup = "COMPLETE";
+                }
             } else {
                 throw new Error("No more pieces of rank: " + rank + " available!");
             }
