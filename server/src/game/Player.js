@@ -22,33 +22,30 @@ class Player{
 
         return startingPieces;
     }
-    
-    validSpaces(){
-        let availableSpaces = [];
-        for(let i = 0; i < this.layout.length; i++){
-            for(let j = 0; j < this.layout[i].length; j++){
-                if(this.layout[i][j] == null){
-                    availableSpaces.push({ x: i, y: j });
-                }
-            }
-        }
-        
-        return availableSpaces;
-    }
 
     placePiece(x, y, rank){
-        if(this.availablePieces.get(rank) != null){
-            if(this.availablePieces.get(rank) == 1){
-                this.availablePieces.delete(rank);
+        if(this.layout[x][y] == null){
+            if(this.availablePieces.get(rank) != null){
+                if(this.availablePieces.get(rank) == 1){
+                    this.availablePieces.delete(rank);
+                } else {
+                    this.availablePieces.set(rank, this.availablePieces.get(rank) - 1);
+                }
+                this.layout[x][y] = rank;
             } else {
-                this.availablePieces.set(rank, this.availablePieces.get(rank) - 1);
+                throw new Error("No more pieces of rank: " + rank + " available!");
             }
-            this.layout[x][y] = rank;
+        } else {
+            throw new Error("Space not available");
         }
     }
 
     getLayout(){
         return this.layout;
+    }
+
+    getAvailablePieces(){
+        return this.availablePieces;
     }
 }
 
