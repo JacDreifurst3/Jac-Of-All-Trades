@@ -17,12 +17,13 @@ export default function App() {
   const [playerColor, setPlayerColor] = useState("RED");
   const [lobbyError, setLobbyError] = useState(null);
 
-  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, placePiece } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   });
 
   const [messages, setMessages] = useState([]);
+  const [selectedRank, setSelectedRank] = useState(null);
 
   useEffect(() => {
     if (error) {
@@ -79,24 +80,39 @@ export default function App() {
   }
 
   const handleSquareClick = (space) => {
-    if (turn !== playerColor) return;
-
-    const hasOwnPiece = space.piece && space.piece.owner === playerColor;
-    const isEmpty = !space.piece;
-
-    if (!selectedPiece) {
-      if (hasOwnPiece) selectPiece(space.x, space.y);
+    if (gamePhase === "SETUP") {
+      if (selectedRank !== null && !space.piece) {
+        let layoutX;
+        if (playerColor === "RED") {
+          if (space.x >= 6) layoutX = space.x - 6;
+          else return;
+        } else {
+          if (space.x <= 3) layoutX = 3 - space.x;
+          else return;
+        }
+        placePiece(layoutX, space.y, selectedRank);
+        setSelectedRank(null);
+      }
     } else {
-      const isValidMove = availableMoves.some(move => move.x === space.x && move.y === space.y);
+      if (turn !== playerColor) return;
 
-      if (isValidMove) {
-        setMessages([]);
-        sendMove(selectedPiece.x, selectedPiece.y, space.x, space.y);
-        clearSelection();
-      } else if (isEmpty) {
-        clearSelection();
-      } else if (hasOwnPiece) {
-        selectPiece(space.x, space.y);
+      const hasOwnPiece = space.piece && space.piece.owner === playerColor;
+      const isEmpty = !space.piece;
+
+      if (!selectedPiece) {
+        if (hasOwnPiece) selectPiece(space.x, space.y);
+      } else {
+        const isValidMove = availableMoves.some(move => move.x === space.x && move.y === space.y);
+
+        if (isValidMove) {
+          setMessages([]);
+          sendMove(selectedPiece.x, selectedPiece.y, space.x, space.y);
+          clearSelection();
+        } else if (isEmpty) {
+          clearSelection();
+        } else if (hasOwnPiece) {
+          selectPiece(space.x, space.y);
+        }
       }
     }
   };
@@ -108,7 +124,8 @@ export default function App() {
       <div className="status-bar">
   <div className="status-info">
     <span style={{ textAlign: "center" }}>Lobby: <strong>{activeLobby}</strong></span>
-    <span style={{ textAlign: "center" }}>Turn: <strong className={turn.toLowerCase()}>{turn}</strong></span>
+    <span style={{ textAlign: "center" }}>Phase: <strong>{gamePhase}</strong></span>
+    {gamePhase === "PLAY" && <span style={{ textAlign: "center" }}>Turn: <strong className={turn.toLowerCase()}>{turn}</strong></span>}
   </div>
   <div className="status-messages" style={{ alignItems: "center" }}>
     {messages.length === 0
@@ -121,6 +138,25 @@ export default function App() {
     }
   </div>
 </div>
+
+      {gamePhase === "SETUP" && (
+        <div className="setup-panel">
+          <h3>Setup Phase - Place Your Pieces</h3>
+          <div className="available-pieces">
+            {Object.entries(availablePieces).map(([rank, count]) => (
+              <button
+                key={rank}
+                className={`piece-btn ${selectedRank == rank ? "selected" : ""}`}
+                onClick={() => setSelectedRank(selectedRank == rank ? null : parseInt(rank))}
+                disabled={count === 0}
+              >
+                {rankName(parseInt(rank))} ({count})
+              </button>
+            ))}
+          </div>
+          {setupComplete && <p>Your setup is complete. Waiting for opponent...</p>}
+        </div>
+      )}
 
       <div className="board-bg">
         {displayBoard.map((space) => {
