@@ -33,37 +33,42 @@ export default function App() {
     }
   }, [error]);
 
-  useEffect(() => {
-    if (!lastBattle) return;
-    const { result, attackerRank, defenderRank, attackerColor, defenderColor } = lastBattle;
-    const atkName = rankName(attackerRank);
-    const defName = rankName(defenderRank);
-    const atkColor = attackerColor ?? attackerColorRef.current ?? playerColor;
-    const defColor = defenderColor ?? (atkColor === "RED" ? "BLUE" : "RED");
 
-    let msg;
-    if (result === "ATTACKER_WINS") msg = ` ${atkName} defeated ${defName}`;
-    else if (result === "DEFENDER_WINS") msg = ` ${defName} defeated ${atkName}`;
-    else if (result === "BOTH_DIE") msg = ` ${atkName} and ${defName} both eliminated`;
-    else if (result === "FLAG_CAPTURED") msg = ` ${atkName} captured the Flag!`;
+ useEffect(() => {
+  if (!lastBattle) return;
 
-    if (msg) setMessages([{ id: Date.now(), text: msg }]);
+  const { result, attackerRank, defenderRank, attackerColor, defenderColor } = lastBattle;
+  
+  const atkColor = attackerColor || (turn === "RED" ? "BLUE" : "RED"); 
+  const defColor = defenderColor || (atkColor === "RED" ? "BLUE" : "RED");
 
-    const newEntry = {
-      id: Date.now(),
-      result,
-      attackerRank,
-      defenderRank,
-      atkLabel: rankLabel(attackerRank),
-      defLabel: rankLabel(defenderRank),
-      atkName,
-      defName,
-      atkColor,
-      defColor,
-    };
-    setBattleLog(prev => [newEntry, ...prev]);
-    setLastBattle(null);
-  }, [lastBattle]);
+  const atkName = rankName(attackerRank);
+  const defName = rankName(defenderRank);
+
+  let msg = "";
+  if (result === "ATTACKER_WINS") msg = `${atkName} defeated ${defName}`;
+  else if (result === "DEFENDER_WINS") msg = `${defName} defeated ${atkName}`;
+  else if (result === "BOTH_DIE") msg = `${atkName} and ${defName} both eliminated`;
+  else if (result === "FLAG_CAPTURED") msg = `${atkName} captured the Flag!`;
+
+  if (msg) setMessages([{ id: Date.now(), text: msg }]);
+
+  const newEntry = {
+    id: Date.now(),
+    result,
+    attackerRank,
+    defenderRank,
+    atkLabel: rankLabel(attackerRank),
+    defLabel: rankLabel(defenderRank),
+    atkName,
+    defName,
+    atkColor,
+    defColor,
+  };
+
+  setBattleLog(prev => [newEntry, ...prev]);
+  setLastBattle(null);
+}, [lastBattle, turn]);
 
   const capturedPieces = battleLog.flatMap((e) => {
     const pieces = [];
@@ -205,14 +210,16 @@ function BattleLog({ entries }) {
 }
 
 function CapturedLog({ pieces, playerColor }) {
-  const listRef = useRef(null);
+  const redPieces = pieces.filter(p => p.color === "RED");
   const bluePieces = pieces.filter(p => p.color === "BLUE");
-  const redPieces  = pieces.filter(p => p.color === "RED");
-  const [topPieces, topLabel, topClass, bottomPieces, bottomLabel, bottomClass] =
-    playerColor === "BLUE"
-      ? [bluePieces, "Blue ", "blue", redPieces,  "Red ",  "red"]
-      : [redPieces,  "Red ",  "red",  bluePieces, "Blue ", "blue"];
 
+  const [topList, topName, topClass] = playerColor === "RED" 
+    ? [redPieces, "Your Lost Pieces", "red"] 
+    : [bluePieces, "Your Lost Pieces", "blue"];
+    
+  const [bottomList, bottomName, bottomClass] = playerColor === "RED"
+    ? [bluePieces, "Captured Blue", "blue"]
+    : [redPieces, "Captured Red", "red"];
   const renderPiece = (p) => (
     <div key={p.id} className="captured-entry">
       <div className={`battle-piece__token piece ${p.color.toLowerCase()} battle-piece--dead`}>
@@ -226,32 +233,17 @@ function CapturedLog({ pieces, playerColor }) {
 
   return (
     <div className="battle-log battle-log--sidebar">
-      <div className="battle-log__header">
-        🏴 Pieces Captured
-        {pieces.length > 0 && <span className="battle-log__count">{pieces.length}</span>}
-      </div>
+      <div className="battle-log__header">Pieces Captured</div>
       <div className="battle-log__scroll--split">
-        {pieces.length === 0 ? (
-          <p className="battle-log__empty">No captures yet…</p>
-        ) : (
-          <>
-            <div className="captured-section">
-              <div className={`captured-section__label ${topClass}`}>{topLabel}</div>
-              {topPieces.length === 0
-                ? <p className="battle-log__empty" style={{ padding: "6px 14px" }}>None</p>
-                : topPieces.map(renderPiece)
-              }
-            </div>
-            <div className="captured-section__divider" />
-            <div className="captured-section">
-              <div className={`captured-section__label ${bottomClass}`}>{bottomLabel}</div>
-              {bottomPieces.length === 0
-                ? <p className="battle-log__empty" style={{ padding: "6px 14px" }}>None</p>
-                : bottomPieces.map(renderPiece)
-              }
-            </div>
-          </>
-        )}
+        <div className="captured-section">
+          <div className={`captured-section__label ${topClass}`}>{topName}</div>
+          {topList.map(renderPiece)}
+        </div>
+        <div className="captured-section__divider" />
+        <div className="captured-section">
+          <div className={`captured-section__label ${bottomClass}`}>{bottomName}</div>
+          {bottomList.map(renderPiece)}
+        </div>
       </div>
     </div>
   );
@@ -293,7 +285,7 @@ function BattleEntry({ entry }) {
         {result === "ATTACKER_WINS" && <span className={`battle-tag battle-tag--${atkColorLow}`}>{atkLabel2} Defeats</span>}
         {result === "DEFENDER_WINS" && <span className={`battle-tag battle-tag--${defColorLow}`}>{defLabel2} Defeats</span>}
         {result === "BOTH_DIE"      && <span className="battle-tag battle-tag--draw">Both Eliminated</span>}
-        {result === "FLAG_CAPTURED" && <span className="battle-tag battle-tag--flag">🚩 Flag Captured!</span>}
+        {result === "FLAG_CAPTURED" && <span className="battle-tag battle-tag--flag"> Flag Captured!</span>}
       </div>
     </div>
   );
