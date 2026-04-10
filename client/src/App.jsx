@@ -327,8 +327,7 @@ export default function App() {
   </div>
 
   <CapturedLog pieces={capturedPieces} playerColor={playerColor} />
-</div>
-    </div>
+  </div>
   );
 }
 
