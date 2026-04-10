@@ -68,18 +68,71 @@ io.on("connection", (socket) => {
         const { lobbyCode, x, y, rank } = data;
         const game = gameService.getGame(lobbyCode);
     
+        if (!game) return;
         const redId = game.players['RED'].socketId;
         const blueId = game.players['BLUE'].socketId;
     
-        if (game) {
-            try {
-                game.placePiece(socket.playerColor, x, y, rank);
-    
-                if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
-                if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
-            } catch (err) {
-                socket.emit("error", err.message);
-            }
+        try {
+            game.placePiece(socket.playerColor, x, y, rank);
+
+            if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+            if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+        } catch (err) {
+            socket.emit("error", err.message);
+        }
+    });
+
+    socket.on("moveSetupPiece", (data) => {
+        const { lobbyCode, fromX, fromY, toX, toY } = data;
+        const game = gameService.getGame(lobbyCode);
+
+        if (!game) return;
+        const redId = game.players['RED'].socketId;
+        const blueId = game.players['BLUE'].socketId;
+
+        try {
+            game.moveSetupPiece(socket.playerColor, fromX, fromY, toX, toY);
+
+            if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+            if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+        } catch (err) {
+            socket.emit("error", err.message);
+        }
+    });
+
+    socket.on("randomizeLayout", (data) => {
+        const { lobbyCode } = data;
+        const game = gameService.getGame(lobbyCode);
+
+        if (!game) return;
+        const redId = game.players['RED'].socketId;
+        const blueId = game.players['BLUE'].socketId;
+
+        try {
+            game.randomizePlayerLayout(socket.playerColor);
+
+            if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+            if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+        } catch (err) {
+            socket.emit("error", err.message);
+        }
+    });
+
+    socket.on("markSetupComplete", (data) => {
+        const { lobbyCode } = data;
+        const game = gameService.getGame(lobbyCode);
+
+        if (!game) return;
+        const redId = game.players['RED'].socketId;
+        const blueId = game.players['BLUE'].socketId;
+
+        try {
+            game.markPlayerSetupComplete(socket.playerColor);
+
+            if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+            if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+        } catch (err) {
+            socket.emit("error", err.message);
         }
     });
 

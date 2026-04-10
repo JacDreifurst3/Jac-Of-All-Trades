@@ -27,6 +27,27 @@ class Game {
       throw new Error("Not in setup phase");
     }
     this.players[playerColor].player.placePiece(x, y, rank);
+  }
+
+  moveSetupPiece(playerColor, fromX, fromY, toX, toY) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.movePiece(fromX, fromY, toX, toY);
+  }
+
+  randomizePlayerLayout(playerColor) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.randomizeLayout();
+  }
+
+  markPlayerSetupComplete(playerColor) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.markSetupComplete();
     if (this.players.RED.player.isSetupComplete() && this.players.BLUE.player.isSetupComplete()) {
       this.gamePhase = "PLAY";
       this.setupInitialPieces();
@@ -193,7 +214,9 @@ class Game {
     winner: this.winner,
     gamePhase: this.gamePhase,
     availablePieces: Object.fromEntries(this.players[forPlayerColor].player.getAvailablePieces()),
-    setupComplete: this.players[forPlayerColor].player.isSetupComplete()
+    setupComplete: this.players[forPlayerColor].player.isSetupComplete(),
+    showConfirmation: this.players[forPlayerColor].player.showConfirmation,
+    setupLayout: this.players[forPlayerColor].player.getLayout()
   };
 }
 

@@ -17,13 +17,14 @@ export default function App() {
   const [playerColor, setPlayerColor] = useState("RED");
   const [lobbyError, setLobbyError] = useState(null);
 
-  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, placePiece } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   });
 
   const [messages, setMessages] = useState([]);
   const [selectedRank, setSelectedRank] = useState(null);
+  const [selectedSetupSlot, setSelectedSetupSlot] = useState(null);
 
   useEffect(() => {
     if (error) {
@@ -48,7 +49,32 @@ export default function App() {
     setLastBattle(null);
   }, [lastBattle]);
 
-  const displayBoard = playerColor === "BLUE" ? [...board].reverse() : board;
+  const boardWithSetup = board.map((space) => ({ ...space }));
+  if (gamePhase === "SETUP" && setupLayout.length > 0) {
+    boardWithSetup.forEach((space) => {
+      if (space.piece) return;
+
+      let layoutRow = null;
+      if (playerColor === "RED" && space.x >= 6) {
+        layoutRow = space.x - 6;
+      } else if (playerColor === "BLUE" && space.x <= 3) {
+        layoutRow = 3 - space.x;
+      }
+
+      if (layoutRow === null) return;
+      const rank = setupLayout[layoutRow]?.[space.y];
+      if (rank !== null && rank !== undefined) {
+        space.piece = { owner: playerColor, rank };
+      }
+    });
+  }
+
+  const toLayoutCoords = (space) => {
+    if (playerColor === "RED") return { x: space.x - 6, y: space.y };
+    return { x: 3 - space.x, y: space.y };
+  };
+
+  const displayBoard = playerColor === "BLUE" ? [...boardWithSetup].reverse() : boardWithSetup;
 
   if (!activeLobby) {
     return (
@@ -81,38 +107,55 @@ export default function App() {
 
   const handleSquareClick = (space) => {
     if (gamePhase === "SETUP") {
-      if (selectedRank !== null && !space.piece) {
-        let layoutX;
-        if (playerColor === "RED") {
-          if (space.x >= 6) layoutX = space.x - 6;
-          else return;
-        } else {
-          if (space.x <= 3) layoutX = 3 - space.x;
-          else return;
+      const inSetupZone = playerColor === "RED" ? space.x >= 6 : space.x <= 3;
+      if (!inSetupZone) return;
+
+      if (selectedRank !== null) {
+        if (!space.piece) {
+          const layoutCoords = toLayoutCoords(space);
+          placePiece(layoutCoords.x, layoutCoords.y, selectedRank);
+          setSelectedRank(null);
         }
-        placePiece(layoutX, space.y, selectedRank);
-        setSelectedRank(null);
+        return;
       }
-    } else {
-      if (turn !== playerColor) return;
 
-      const hasOwnPiece = space.piece && space.piece.owner === playerColor;
-      const isEmpty = !space.piece;
-
-      if (!selectedPiece) {
-        if (hasOwnPiece) selectPiece(space.x, space.y);
-      } else {
-        const isValidMove = availableMoves.some(move => move.x === space.x && move.y === space.y);
-
-        if (isValidMove) {
-          setMessages([]);
-          sendMove(selectedPiece.x, selectedPiece.y, space.x, space.y);
-          clearSelection();
-        } else if (isEmpty) {
-          clearSelection();
-        } else if (hasOwnPiece) {
-          selectPiece(space.x, space.y);
+      if (!selectedSetupSlot) {
+        if (space.piece && space.piece.owner === playerColor) {
+          setSelectedSetupSlot({ x: space.x, y: space.y });
         }
+        return;
+      }
+
+      if (selectedSetupSlot.x === space.x && selectedSetupSlot.y === space.y) {
+        setSelectedSetupSlot(null);
+        return;
+      }
+
+      const sourceLayout = toLayoutCoords(selectedSetupSlot);
+      const targetLayout = toLayoutCoords(space);
+      moveSetupPiece(sourceLayout.x, sourceLayout.y, targetLayout.x, targetLayout.y);
+      setSelectedSetupSlot(null);
+      return;
+    }
+
+    if (turn !== playerColor) return;
+
+    const hasOwnPiece = space.piece && space.piece.owner === playerColor;
+    const isEmpty = !space.piece;
+
+    if (!selectedPiece) {
+      if (hasOwnPiece) selectPiece(space.x, space.y);
+    } else {
+      const isValidMove = availableMoves.some(move => move.x === space.x && move.y === space.y);
+
+      if (isValidMove) {
+        setMessages([]);
+        sendMove(selectedPiece.x, selectedPiece.y, space.x, space.y);
+        clearSelection();
+      } else if (isEmpty) {
+        clearSelection();
+      } else if (hasOwnPiece) {
+        selectPiece(space.x, space.y);
       }
     }
   };
@@ -139,34 +182,16 @@ export default function App() {
   </div>
 </div>
 
-      {gamePhase === "SETUP" && (
-        <div className="setup-panel">
-          <h3>Setup Phase - Place Your Pieces</h3>
-          <div className="available-pieces">
-            {Object.entries(availablePieces).map(([rank, count]) => (
-              <button
-                key={rank}
-                className={`piece-btn ${selectedRank == rank ? "selected" : ""}`}
-                onClick={() => setSelectedRank(selectedRank == rank ? null : parseInt(rank))}
-                disabled={count === 0}
-              >
-                {rankName(parseInt(rank))} ({count})
-              </button>
-            ))}
-          </div>
-          {setupComplete && <p>Your setup is complete. Waiting for opponent...</p>}
-        </div>
-      )}
-
       <div className="board-bg">
         {displayBoard.map((space) => {
           const isValidDestination = selectedPiece && availableMoves.some(move => move.x === space.x && move.y === space.y);
           const isSelected = selectedPiece?.x === space.x && selectedPiece?.y === space.y;
+          const isSetupSelected = selectedSetupSlot?.x === space.x && selectedSetupSlot?.y === space.y;
 
           return (
             <div
               key={`${space.x},${space.y}`}
-              className={`tile ${space.terrain === "WATER" ? "lake" : "grass"} ${isSelected ? "selected" : ""} ${isValidDestination ? "valid-destination" : ""}`}
+              className={`tile ${space.terrain === "WATER" ? "lake" : "grass"} ${isSelected || isSetupSelected ? "selected" : ""} ${isValidDestination ? "valid-destination" : ""}`}
               onClick={() => handleSquareClick(space)}
             >
               {space.piece && (
@@ -176,6 +201,54 @@ export default function App() {
           );
         })}
       </div>
+
+      {gamePhase === "SETUP" && (
+        <div className="setup-panel">
+          <h3>Setup Phase - Place Your Pieces</h3>
+          <div className="available-pieces">
+            {Object.entries(availablePieces).map(([rank, count]) => {
+              const parsedRank = parseInt(rank, 10);
+              return (
+                <button
+                  key={rank}
+                  className={`piece-btn ${selectedRank == rank ? "selected" : ""}`}
+                  onClick={() => {
+                    setSelectedRank(selectedRank == rank ? null : parsedRank);
+                    setSelectedSetupSlot(null);
+                  }}
+                  disabled={count === 0}
+                >
+                  <div className="piece-preview">
+                    <div className={`piece ${playerColor.toLowerCase()}`}>
+                      <PieceIcon label={rank} />
+                    </div>
+                  </div>
+                  <span>{rankName(parsedRank)} ({count})</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="setup-actions">
+            <button className="action-btn" onClick={() => { randomizeLayout(); setSelectedRank(null); setSelectedSetupSlot(null); }}>
+              Randomize Layout
+            </button>
+            {showConfirmation && !setupComplete && (
+              <button className="action-btn confirm" onClick={markSetupComplete}>
+                Confirm Setup
+              </button>
+            )}
+          </div>
+          <p className="setup-instruction">
+            {selectedRank !== null
+              ? "Click an empty setup tile to place the selected piece."
+              : selectedSetupSlot
+                ? "Click another setup tile to move or swap."
+                : "Select a piece to place or swap."
+            }
+          </p>
+          {setupComplete && <p>Your setup is complete. Waiting for opponent...</p>}
+        </div>
+      )}
     </div>
   );
 }
