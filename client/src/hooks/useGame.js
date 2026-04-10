@@ -23,6 +23,11 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   const [availableMoves, setAvailableMoves] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [lastBattle, setLastBattle] = useState(null);
+  const [gamePhase, setGamePhase] = useState('SETUP');
+  const [availablePieces, setAvailablePieces] = useState({});
+  const [setupComplete, setSetupComplete] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [setupLayout, setSetupLayout] = useState([]);
 
   useEffect(() => {
     if (!lobbyCode) return;
@@ -32,6 +37,11 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     socket.on("gameStateUpdate", (state) => {
       setBoard(state.board.flat());
       setTurn(state.currentPlayer);
+      setGamePhase(state.gamePhase);
+      setAvailablePieces(state.availablePieces);
+      setSetupComplete(state.setupComplete);
+      setShowConfirmation(state.showConfirmation || false);
+      setSetupLayout(state.setupLayout || []);
       setAvailableMoves([]);
       setSelectedPiece(null);
     });
@@ -68,6 +78,22 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     socket.emit("makeMove", { lobbyCode, fromX, fromY, toX, toY });
   };
 
+  const placePiece = (x, y, rank) => {
+    socket.emit("placePiece", { lobbyCode, x, y, rank });
+  };
+
+  const moveSetupPiece = (fromX, fromY, toX, toY) => {
+    socket.emit("moveSetupPiece", { lobbyCode, fromX, fromY, toX, toY });
+  };
+
+  const randomizeLayout = () => {
+    socket.emit("randomizeLayout", { lobbyCode });
+  };
+
+  const markSetupComplete = () => {
+    socket.emit("markSetupComplete", { lobbyCode });
+  };
+
   const selectPiece = (x, y) => {
     socket.emit("selectPiece", { lobbyCode, x, y });
   };
@@ -77,5 +103,5 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     setSelectedPiece(null);
   };
 
-  return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle };
+  return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete };
 }
