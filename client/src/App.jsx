@@ -229,23 +229,27 @@ export default function App() {
             })}
           </div>
           <div className="setup-actions">
-            <button className="action-btn" onClick={() => { randomizeLayout(); setSelectedRank(null); setSelectedSetupSlot(null); }}>
-              Randomize Layout
-            </button>
+            {!setupComplete && (
+              <button className="action-btn" onClick={() => { randomizeLayout(); setSelectedRank(null); setSelectedSetupSlot(null); }}>
+                Randomize Layout
+              </button>
+            )}
             {showConfirmation && !setupComplete && (
               <button className="action-btn confirm" onClick={markSetupComplete}>
                 Confirm Setup
               </button>
             )}
           </div>
-          <p className="setup-instruction">
-            {selectedRank !== null
-              ? "Click an empty setup tile to place the selected piece."
-              : selectedSetupSlot
-                ? "Click another setup tile to move or swap."
-                : "Select a piece to place or swap."
-            }
-          </p>
+          {!setupComplete && (
+            <p className="setup-instruction">
+              {selectedRank !== null
+                ? "Click an empty setup tile to place the selected piece."
+                : selectedSetupSlot
+                  ? "Click another setup tile to move or swap."
+                  : "Select a piece to place or swap."
+              }
+            </p>
+          )}
           {setupComplete && <p>Your setup is complete. Waiting for opponent...</p>}
         </div>
       )}
