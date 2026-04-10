@@ -6,8 +6,8 @@ const Player = require('./Player');
 class Game {
   constructor() {
     this.board = new Board();
-    this.currentPlayer = "RED"; // Make and connect with Player.js at some point?
-    this.moveHistory = []; // Will be connected to/stored in database at some point 
+    this.currentPlayer = "RED";
+    this.moveHistory = [];
     this.gamePhase = "SETUP";
     this.gameOver = false;
     this.winner = null;
@@ -15,7 +15,6 @@ class Game {
       'RED' : { socketId: null, player: new Player("Red") },
       'BLUE' : { socketId: null, player: new Player("Blue") }
     }
-    // this.setupInitialPieces(); // Moved to when setup is complete
   }
 
   assignPlayer(color, socketId) {
