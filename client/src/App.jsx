@@ -19,7 +19,7 @@ export default function App() {
   const [lobbyError, setLobbyError] = useState(null);
   const [battleLog, setBattleLog] = useState([]);
 
-  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   });
@@ -138,6 +138,7 @@ export default function App() {
   }
 
   const handleSquareClick = (space) => {
+    if (gameOver) return;
     if (gamePhase === "SETUP") {
       const inSetupZone = playerColor === "RED" ? space.x >= 6 : space.x <= 3;
       if (!inSetupZone) return;
@@ -197,6 +198,18 @@ export default function App() {
 
   <div className="board-wrapper">
     {error && <div className="error-toast">{error}</div>}
+
+    {gameOver && (
+      <div className="game-over-overlay">
+        <div className="game-over-modal">
+          <h2>Game Over!</h2>
+          <p className={`winner-announcement ${winner?.toLowerCase()}`}>
+            {winner} Team Wins!
+          </p>
+          <p>The flag has been captured!</p>
+        </div>
+      </div>
+    )}
 
     <div className="status-bar">
       <div className="status-info">

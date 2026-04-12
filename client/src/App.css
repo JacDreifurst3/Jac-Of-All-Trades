@@ -565,3 +565,58 @@ body {
   text-align: center;
   padding: 12px;
 }
+
+.game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.game-over-modal {
+  background: #2a1810;
+  border: 3px solid #8b6914;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(139, 105, 20, 0.5);
+  max-width: 400px;
+}
+
+.game-over-modal h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 32px;
+  color: #f5cc6a;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.winner-announcement {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.winner-announcement.red {
+  color: #ff6b6b;
+}
+
+.winner-announcement.blue {
+  color: #6b6bff;
+}
+
+.game-over-modal p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  color: #d4af37;
+  margin: 10px 0;
+}
