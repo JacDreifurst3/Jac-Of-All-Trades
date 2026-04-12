@@ -377,7 +377,7 @@ body {
 }
 
 .battle-log--sidebar {
-  width: 280px;
+  width: 279px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -580,7 +580,7 @@ body {
 
 
 .setup-sidebar {
-  width: 220px;
+  width: 279px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -862,7 +862,7 @@ body {
 
 
 .setup-info-sidebar {
-  width: 220px;
+  width: 279px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;

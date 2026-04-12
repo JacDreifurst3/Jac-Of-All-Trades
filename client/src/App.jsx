@@ -376,13 +376,11 @@ function SetupSidebar({ availablePieces, selectedRank, setSelectedRank, setSelec
 }
 
 function SetupInfoSidebar({ playerColor, selectedRank, selectedSetupSlot, setupComplete }) {
-  const hint = setupComplete
-    ? null
-    : selectedRank !== null
-    ? "Click an empty tile in your zone to place."
-    : selectedSetupSlot
-    ? "Click another tile to move or swap."
-    : "Select a piece from the left, then click your zone.";
+  const hints = setupComplete ? [] : [
+    "Select a piece from the left, then click your zone.",
+    "Click an empty tile in your zone to place.",
+    "Click another tile to move or swap.",
+  ];
 
   const PIECE_TIPS = {
     10: "Marshal — highest ranking piece, only beaten by the Spy.",
@@ -406,12 +404,12 @@ function SetupInfoSidebar({ playerColor, selectedRank, selectedSetupSlot, setupC
         <h3>Field Manual</h3>
       </div>
 
-      {hint && (
-        <div className="setup-hint">
+      {hints.map((h, i) => (
+        <div key={i} className="setup-hint">
           <div className="setup-hint__arrow">▶</div>
-          <span>{hint}</span>
+          <span>{h}</span>
         </div>
-      )}
+      ))}
 
       <div className="setup-tips">
         {RANK_ORDER.map((r) => (
