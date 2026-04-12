@@ -26,9 +26,12 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     expect(game.winner).toBeNull();
   });
 
+  test("initializes winReason null", () => {
+    expect(game.winReason).toBeNull();
+  });
+
   test("makeMove returns MOVE for a normal move", () => {
     const from = game.board.getSpace(0, 0);
-    const to = game.board.getSpace(0, 1);
     const piece = new Piece(5, "RED");
     from.placePiece(piece);
 
@@ -189,6 +192,24 @@ describe("Game Class (Real Engine - No Mocks)", () => {
 
     expect(game.gameOver).toBe(true);
     expect(game.winner).toBe("RED");
+    expect(game.winReason).toBe("flag_captured");
+  });
+
+  test("eliminating last piece sets game over and winner", () => {
+    // Place a piece for BLUE (the only piece)
+    const blueSpace = game.board.getSpace(0, 1);
+    blueSpace.placePiece(new Piece(5, "BLUE"));
+    
+    // Place a higher rank piece for RED
+    const redSpace = game.board.getSpace(0, 0);
+    redSpace.placePiece(new Piece(6, "RED"));
+    
+    // RED attacks and eliminates the last BLUE piece
+    game.makeMove(0, 0, 0, 1);
+
+    expect(game.gameOver).toBe(true);
+    expect(game.winner).toBe("RED");
+    expect(game.winReason).toBe("no_pieces_left");
   });
 
   test("spy assassinates marshal", () => {
@@ -298,6 +319,11 @@ describe("Game Class (Real Engine - No Mocks)", () => {
   test("getGameState includes winner state", () => {
     const state = game.getGameState("RED");
     expect(state.winner).toBe(null);
+  });
+
+  test("getGameState includes winReason state", () => {
+    const state = game.getGameState("RED");
+    expect(state.winReason).toBe(null);
   });
 
   test("getGameState includes showConfirmation", () => {
