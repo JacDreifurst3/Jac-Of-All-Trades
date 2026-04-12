@@ -193,7 +193,21 @@ export default function App() {
 
   return (
 <div className="game-layout">
-  <BattleLog entries={battleLog} />
+  {gamePhase === "SETUP" ? (
+    <SetupSidebar
+      availablePieces={availablePieces}
+      selectedRank={selectedRank}
+      setSelectedRank={setSelectedRank}
+      setSelectedSetupSlot={setSelectedSetupSlot}
+      setupComplete={setupComplete}
+      showConfirmation={showConfirmation}
+      randomizeLayout={randomizeLayout}
+      markSetupComplete={markSetupComplete}
+      playerColor={playerColor}
+    />
+  ) : (
+    <BattleLog entries={battleLog} />
+  )}
 
   <div className="board-wrapper">
     {error && <div className="error-toast">{error}</div>}
@@ -203,16 +217,23 @@ export default function App() {
         <span style={{ textAlign: "center" }}>
           Lobby: <strong>{activeLobby}</strong>
         </span>
-        <span style={{ textAlign: "center" }}>
-          Phase: <strong>{gamePhase}</strong>
-        </span>
+        {gamePhase === "SETUP" && (
+          <span style={{ textAlign: "center" }}>
+            <strong>Setup Phase</strong>
+          </span>
+        )}
         {gamePhase === "PLAY" && (
           <span style={{ textAlign: "center" }}>
             Turn: <strong className={turn.toLowerCase()}>{turn}</strong>
           </span>
         )}
       </div>
-
+      {setupComplete && gamePhase === "SETUP" && (
+        <div className="setup-waiting">
+          <div className="setup-waiting__pulse" />
+          Waiting for opponent…
+        </div>
+      )}
       <div className="status-messages" style={{ alignItems: "center" }}>
         {messages.length === 0 ? (
           <span className="status-msg-empty"></span>
@@ -258,76 +279,154 @@ export default function App() {
         );
       })}
     </div>
+  </div>
 
-    {gamePhase === "SETUP" && (
-      <div className="setup-panel">
-        <h3>Setup Phase - Place Your Pieces</h3>
+  {gamePhase === "SETUP" ? (
+    <SetupInfoSidebar playerColor={playerColor} selectedRank={selectedRank} selectedSetupSlot={selectedSetupSlot} setupComplete={setupComplete} />
+  ) : (
+    <CapturedLog pieces={capturedPieces} playerColor={playerColor} />
+  )}
+  </div>
+  );
+}
 
-        <div className="available-pieces">
-          {Object.entries(availablePieces).map(([rank, count]) => {
-            const parsedRank = parseInt(rank, 10);
+const RANK_ORDER = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 0];
 
-            return (
-              <button
-                key={rank}
-                className={`piece-btn ${selectedRank === parsedRank ? "selected" : ""}`}
-                onClick={() => {
-                  setSelectedRank(selectedRank == rank ? null : parsedRank);
-                  setSelectedSetupSlot(null);
-                }}
-                disabled={count === 0}
-              >
-                <div className="piece-preview">
-                  <div className={`piece ${playerColor.toLowerCase()}`}>
-                    <PieceIcon label={rank} />
-                  </div>
-                </div>
-                <span>
-                  {rankName(parsedRank)} ({count})
-                </span>
-              </button>
-            );
-          })}
+function SetupSidebar({ availablePieces, selectedRank, setSelectedRank, setSelectedSetupSlot, setupComplete, showConfirmation, randomizeLayout, markSetupComplete, playerColor }) {
+  const totalLeft = Object.values(availablePieces).reduce((a, b) => a + b, 0);
+  const allPlaced = totalLeft === 0;
+
+  return (
+    <div className="setup-sidebar">
+      <div className="setup-sidebar__header">
+        <div className="setup-sidebar__crown">♛</div>
+        <h2 className="setup-sidebar__title">Your Pieces</h2>
+        <div className={`setup-sidebar__team-badge ${playerColor.toLowerCase()}`}>
+          {playerColor === "RED" ? "Red Army" : "Blue Army"}
         </div>
+      </div>
 
-        <div className="setup-actions">
-          {!setupComplete && (
+      <div className="setup-sidebar__counter">
+        <span className="setup-counter__num">{totalLeft}</span>
+        <span className="setup-counter__label">pieces remaining</span>
+        <div className="setup-counter__track">
+          <div
+            className="setup-counter__fill"
+            style={{ width: `${100 - (totalLeft / 40) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="setup-pieces-grid">
+        {RANK_ORDER.map((r) => {
+          const count = availablePieces[r] ?? 0;
+          const isSelected = selectedRank === r;
+          const depleted = count === 0;
+          return (
             <button
-              className="action-btn"
+              key={r}
+              className={`setup-piece-card ${isSelected ? "selected" : ""} ${depleted ? "depleted" : ""} ${playerColor.toLowerCase()}`}
               onClick={() => {
-                randomizeLayout();
-                setSelectedRank(null);
+                setSelectedRank(isSelected ? null : r);
                 setSelectedSetupSlot(null);
               }}
+              disabled={depleted}
+              title={rankName(r)}
             >
-              Randomize Layout
+              <div className="setup-piece-card__token">
+                <div className={`piece ${playerColor.toLowerCase()}`}>
+                  <PieceIcon label={String(r)} />
+                </div>
+              </div>
+              <div className="setup-piece-card__info">
+                <span className="setup-piece-card__name">{rankName(r)}</span>
+                <span className="setup-piece-card__count">×{count}</span>
+              </div>
+              {isSelected && <div className="setup-piece-card__glow" />}
             </button>
-          )}
-
-          {showConfirmation && !setupComplete && (
-            <button className="action-btn confirm" onClick={markSetupComplete}>
-              Confirm Setup
-            </button>
-          )}
-        </div>
-
-        {!setupComplete && (
-          <p className="setup-instruction">
-            {selectedRank !== null
-              ? "Click an empty setup tile to place the selected piece."
-              : selectedSetupSlot
-              ? "Click another setup tile to move or swap."
-              : "Select a piece to place or swap."}
-          </p>
-        )}
-
-        {setupComplete && <p>Your setup is complete. Waiting for opponent...</p>}
+          );
+        })}
       </div>
-    )}
-  </div>
 
-  <CapturedLog pieces={capturedPieces} playerColor={playerColor} />
-  </div>
+      <div className="setup-sidebar__actions">
+        {!setupComplete && (
+          <button
+            className="setup-action-btn setup-action-btn--random"
+            onClick={() => {
+              randomizeLayout();
+              setSelectedRank(null);
+              setSelectedSetupSlot(null);
+            }}
+          >
+            <span className="setup-action-btn__icon">⚄</span>
+            Randomize
+          </button>
+        )}
+        {showConfirmation && !setupComplete && (
+          <button className="setup-action-btn setup-action-btn--confirm" onClick={markSetupComplete}>
+            <span className="setup-action-btn__icon">✓</span>
+            Confirm Setup
+          </button>
+        )}
+      </div>
+
+      
+    </div>
+  );
+}
+
+function SetupInfoSidebar({ playerColor, selectedRank, selectedSetupSlot, setupComplete }) {
+  const hint = setupComplete
+    ? null
+    : selectedRank !== null
+    ? "Click an empty tile in your zone to place."
+    : selectedSetupSlot
+    ? "Click another tile to move or swap."
+    : "Select a piece from the left, then click your zone.";
+
+  const PIECE_TIPS = {
+    10: "Marshal — highest ranking piece, only beaten by the Spy.",
+    9:  "General — second highest ranking piece.",
+    8:  "Colonel — solid frontline attacker.",
+    7:  "Major — versatile mid-rank fighter.",
+    6:  "Captain — reliable attacker.",
+    5:  "Lieutenant — light infantry.",
+    4:  "Sergeant — cannon fodder.",
+    3:  "Miner — the only unit that can defuse Bombs.",
+    2:  "Scout — can move any number of empty spaces horizontally or vertically",
+    1:  "Spy — the only unit that can defeat the Marshal.",
+    11: "Bomb — immovable and kills any attacker except the Miner.",
+    0:  "Flag — protect at all costs! If captured, you lose.",
+  };
+
+  return (
+    <div className="setup-info-sidebar">
+      <div className="setup-info-sidebar__header">
+        <span className="setup-info-sidebar__icon"></span>
+        <h3>Field Manual</h3>
+      </div>
+
+      {hint && (
+        <div className="setup-hint">
+          <div className="setup-hint__arrow">▶</div>
+          <span>{hint}</span>
+        </div>
+      )}
+
+      <div className="setup-tips">
+        {RANK_ORDER.map((r) => (
+          <div
+            key={r}
+            className={`setup-tip-row ${selectedRank === r ? "highlighted" : ""} ${r === 0 || r === 11 ? "special" : ""}`}
+          >
+            <div className={`setup-tip-badge ${playerColor.toLowerCase()}`}>
+              <PieceIcon label={String(r)} />
+            </div>
+            <span className="setup-tip-text">{PIECE_TIPS[r]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -351,10 +450,7 @@ function BattleLog({ entries }) {
         {entries.length > 0 && <span className="battle-log__count">{entries.length}</span>}
       </div>
       <div className="battle-log__scroll" ref={listRef}>
-        {entries.length === 0
-          ? <p className="battle-log__empty">No battles yet…</p>
-          : entries.map((e) => <BattleEntry key={e.id} entry={e} />)
-        }
+        {entries.map((e) => <BattleEntry key={e.id} entry={e} />)}
       </div>
     </div>
   );
