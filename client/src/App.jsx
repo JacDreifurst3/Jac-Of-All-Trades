@@ -19,7 +19,7 @@ export default function App() {
   const [lobbyError, setLobbyError] = useState(null);
   const [battleLog, setBattleLog] = useState([]);
 
-  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   });
@@ -206,7 +206,11 @@ export default function App() {
           <p className={`winner-announcement ${winner?.toLowerCase()}`}>
             {winner} Team Wins!
           </p>
-          <p>The flag has been captured!</p>
+          <p>
+            {winReason === "flag_captured" 
+              ? "The flag has been captured!" 
+              : "The opponent has no pieces left!"}
+          </p>
         </div>
       </div>
     )}
