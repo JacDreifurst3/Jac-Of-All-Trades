@@ -392,7 +392,7 @@ function SetupInfoSidebar({ playerColor, selectedRank, selectedSetupSlot, setupC
     4:  "Sergeant — cannon fodder.",
     3:  "Miner — the only unit that can defuse Bombs.",
     2:  "Scout — can move any number of empty spaces horizontally or vertically",
-    1:  "Spy — the only unit that can defeat the Marshal.",
+    1:  "Spy — the only unit that can defeat the Marshal when the spy attacks.",
     11: "Bomb — immovable and kills any attacker except the Miner.",
     0:  "Flag — protect at all costs! If captured, you lose.",
   };
