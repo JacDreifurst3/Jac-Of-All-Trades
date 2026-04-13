@@ -11,6 +11,7 @@ class Game {
     this.gamePhase = "SETUP";
     this.gameOver = false;
     this.winner = null;
+    this.winReason = null;
     this.players = {
       'RED' : { socketId: null, player: new Player("Red") },
       'BLUE' : { socketId: null, player: new Player("Blue") }
@@ -95,6 +96,12 @@ class Game {
 
     if (defender) {
       result = this.resolveBattle(attacker, defender, fromSpace, toSpace);
+      // Check if defender's player has any pieces left (only if game hasn't already ended)
+      if (!this.gameOver && !this.hasPiecesLeft(defender.getOwner())) {
+        this.gameOver = true;
+        this.winner = this.currentPlayer;
+        this.winReason = "no_pieces_left";
+      }
     } else {
       this.board.executeMove(fromSpace, toSpace);
       result = "MOVE";
@@ -125,6 +132,7 @@ class Game {
       this.board.executeMove(fromSpace, toSpace);
       this.gameOver = true;
       this.winner = this.currentPlayer;
+      this.winReason = "flag_captured";
       return "FLAG_CAPTURED";
     }
 
@@ -158,6 +166,18 @@ class Game {
 
   switchTurn() {
     this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
+  }
+
+  hasPiecesLeft(playerColor) {
+    for (let x = 0; x < this.board.size; x++) {
+      for (let y = 0; y < this.board.size; y++) {
+        const space = this.board.getSpace(x, y);
+        if (space.piece && space.piece.getOwner() === playerColor) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   getAvailableMovesForPiece(x, y) {
@@ -211,6 +231,7 @@ class Game {
     currentPlayer: this.currentPlayer,
     gameOver: this.gameOver,
     winner: this.winner,
+    winReason: this.winReason,
     gamePhase: this.gamePhase,
     availablePieces: Object.fromEntries(this.players[forPlayerColor].player.getAvailablePieces()),
     setupComplete: this.players[forPlayerColor].player.isSetupComplete(),
