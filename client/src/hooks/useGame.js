@@ -111,3 +111,20 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
 
   return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason };
 }
+
+
+//This should be a version create game logic that you can modify for the create game button. Essentually
+/* const handleCreateGame = async () => {
+    try {
+        const response = await axios.post('/api/games/create');
+
+        const { lobbyCode } = response.data;
+
+
+        //THIS WILL CHANGE THE URL SO YOU CAN SEE THE LOBBY CODE AT THE TOP FOR TESTING:)
+        navigate(`/game/${lobbyCode}`); 
+    } catch (err) {
+        console.error("Failed to create game", err);
+    }
+};
+*/
