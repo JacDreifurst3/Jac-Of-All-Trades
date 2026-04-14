@@ -28,31 +28,29 @@ io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     // Join a specific lobby/room
-    socket.on("joinGame", ({ lobbyCode, playerColor }) => {
-        
-        if (!gameService.getGame(lobbyCode)) {
-            gameService.createGame(lobbyCode);
-        }
-        
-        const game = gameService.getGame(lobbyCode);
+socket.on("joinGame", ({ lobbyCode, playerColor }) => {
+    const game = gameService.getGame(lobbyCode);
 
-        // Check if color is already taken by a different socket
-        const existingId = game.players[playerColor.toUpperCase()].socketId;
-        console.log(`Join attempt: lobby=${lobbyCode} color=${playerColor} socket=${socket.id}`);
-        console.log(`Existing ${playerColor} player: ${existingId}`);
-        if (existingId && existingId !== socket.id) {
-            console.log(`BLOCKED: ${socket.id} tried to join as ${playerColor}`);
-            socket.emit("error", `Color ${playerColor} is already taken in lobby ${lobbyCode}.`);
-            return; // Block them from joining
-        }
-        socket.join(lobbyCode);
-        game.assignPlayer(playerColor,socket.id);
+    if (!game) {
+        socket.emit("error", "This game lobby does not exist.");
+        return;
+    }
 
-        socket.playerColor = playerColor;
-        // Send the initial state of game to who joins
-        socket.emit("gameStateUpdate", game.getGameState(playerColor));
-        console.log(`User joined room: ${lobbyCode}`);
-    });
+    const colorKey = playerColor.toUpperCase();
+    const existingId = game.players[colorKey].socketId;
+
+    if (existingId && existingId !== socket.id) {
+        socket.emit("error", `Color ${playerColor} is already taken.`);
+        return;
+    }
+
+    socket.join(lobbyCode);
+    game.assignPlayer(playerColor, socket.id);
+    socket.playerColor = playerColor;
+
+    socket.emit("gameStateUpdate", game.getGameState(playerColor));
+    console.log(`User ${socket.id} joined ${lobbyCode} as ${playerColor}`);
+});
 
     socket.on("selectPiece", (data) => {
         const { lobbyCode, x, y } = data;
