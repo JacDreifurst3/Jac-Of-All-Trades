@@ -1,0 +1,93 @@
+const User = require('../models/UserModel');
+
+// GET /api/users/:uid
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.uid);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Get Profile Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// PATCH /api/users/:uid
+exports.updateProfile = async (req, res) => {
+    try {
+        const allowedUpdates = ['username', 'profilePicUrl'];
+        const updates = {};
+
+        allowedUpdates.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updates[field] = req.body[field];
+            }
+        });
+
+        const user = await User.findByIdAndUpdate(
+            req.params.uid,
+            updates,
+            { new: true, runValidators: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Update Profile Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// PATCH /api/users/:uid/stats
+exports.updateStats = async (req, res) => {
+    try {
+        const { result } = req.body;
+
+        if (!['WIN', 'LOSS'].includes(result)) {
+            return res.status(400).json({ message: "Result must be WIN or LOSS" });
+        }
+
+        const updates = {
+            $inc: {
+                gamesPlayed: 1,
+                wins: result === 'WIN' ? 1 : 0,
+                losses: result === 'LOSS' ? 1 : 0,
+            }
+        };
+
+        const user = await User.findByIdAndUpdate(
+            req.params.uid,
+            updates,
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Update Stats Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// GET /api/users/leaderboard
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const topPlayers = await User.find()
+            .sort({ wins: -1 })
+            .limit(10)
+            .select('username profilePicUrl wins losses gamesPlayed');
+
+        res.status(200).json(topPlayers);
+    } catch (error) {
+        console.error("Leaderboard Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

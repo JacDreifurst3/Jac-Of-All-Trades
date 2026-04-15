@@ -27,7 +27,8 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   useEffect(() => {
     if (!lobbyCode) return;
 
-    socket.emit("joinGame", { lobbyCode, playerColor });
+    socket.emit("joinGame", { lobbyCode, playerColor, uid: "testuser123" });
+    // testuser123 hardcoded until auth is hooked up on the front end 
 
     socket.on("gameStateUpdate", (state) => {
       setBoard(state.board.flat());

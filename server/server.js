@@ -6,6 +6,8 @@ require('dotenv').config();
 const connectDB = require('./src/config/db');
 const gameService = require('./src/services/gameService'); // This is inplace of connectDB
 const gameRoutes = require('./src/routes/game')
+const authRoutes = require('./src/routes/auth');
+const userRoutes = require('./src/routes/users');
 
 const app = express();
 
@@ -22,13 +24,15 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
-app.use('/api/games', gameRoutes)
+app.use('/api/games', gameRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     // Join a specific lobby/room
-    socket.on("joinGame", ({ lobbyCode, playerColor }) => {
+    socket.on("joinGame", ({ lobbyCode, playerColor, uid }) => {
         
         if (!gameService.getGame(lobbyCode)) {
             gameService.createGame(lobbyCode);
@@ -47,6 +51,7 @@ io.on("connection", (socket) => {
         }
         socket.join(lobbyCode);
         game.assignPlayer(playerColor,socket.id);
+        gameService.assignPlayerUID(lobbyCode, playerColor, uid);
 
         socket.playerColor = playerColor;
         // Send the initial state of game to who joins
@@ -85,6 +90,9 @@ io.on("connection", (socket) => {
                     const battleData = { result, attackerRank, defenderRank };
                     if (redId) io.to(redId).emit("moveResult", battleData);
                     if (blueId) io.to(blueId).emit("moveResult", battleData);
+                }
+                if (result === "FLAG_CAPTURED") {
+                    gameService.finishGame(lobbyCode, game.winner);
                 }
             } catch (err) {
                 socket.emit("error", err.message);
