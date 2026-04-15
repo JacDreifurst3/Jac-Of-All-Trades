@@ -1,51 +1,83 @@
 const Board = require("./Board");
 const Move = require("./Move");
-const Piece = require('./Piece')
-
-const STARTING_LAYOUT = [
-  [8,2,3,2,7,3,2,2,11,3],
-  [3,5,2,11,7,4,11,2,4,2],
-  [8,11,6,5,7,2,3,4,4,5],
-  [11,0,11,10,1,6,6,6,9,5],
-];
+const Piece = require('./Piece');
+const Player = require('./Player');
 
 class Game {
   constructor() {
     this.board = new Board();
-    this.currentPlayer = "RED"; // Make and connect with Player.js at some point?
-    this.moveHistory = []; // Will be connected to/stored in database at some point 
+    this.currentPlayer = "RED";
+    this.moveHistory = [];
+    this.gamePhase = "SETUP";
     this.gameOver = false;
     this.winner = null;
-    this.player = {
-      'RED' : null,
-      'BLUE' : null
+    this.winReason = null;
+    this.players = {
+      'RED' : { socketId: null, player: new Player("Red") },
+      'BLUE' : { socketId: null, player: new Player("Blue") }
     }
-    this.setupInitialPieces(); // initial setup for testing. 
   }
 
   assignPlayer(color, socketId) {
-    this.player[color] = socketId;
+    this.players[color].socketId = socketId;
+  }
+
+  placePiece(playerColor, x, y, rank) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.placePiece(x, y, rank);
+  }
+
+  moveSetupPiece(playerColor, fromX, fromY, toX, toY) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.movePiece(fromX, fromY, toX, toY);
+  }
+
+  randomizePlayerLayout(playerColor) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.randomizeLayout();
+  }
+
+  markPlayerSetupComplete(playerColor) {
+    if (this.gamePhase !== "SETUP") {
+      throw new Error("Not in setup phase");
+    }
+    this.players[playerColor].player.markSetupComplete();
+    if (this.players.RED.player.isSetupComplete() && this.players.BLUE.player.isSetupComplete()) {
+      this.gamePhase = "PLAY";
+      this.setupInitialPieces();
+    }
   }
 
   setupInitialPieces() {
     // Populate Blue
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 10; c++) {
-        const rank = STARTING_LAYOUT[3 - r][c]; 
+    const blueLayout = this.players.BLUE.player.getLayout();
+    for (let r = 0; r < blueLayout.length; r++) {
+      for (let c = 0; c < blueLayout[0].length; c++) {
+        const rank = blueLayout[3 - r][c]; 
         this.board.getSpace(r, c).placePiece(new Piece(rank, "BLUE"));
       }
     }
 
     // Populate Red
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 10; c++) {
-        const rank = STARTING_LAYOUT[r][c];
+    const redLayout = this.players.RED.player.getLayout();
+    for (let r = 0; r < redLayout.length; r++) {
+      for (let c = 0; c < redLayout[0].length; c++) {
+        const rank = redLayout[r][c];
         this.board.getSpace(r + 6, c).placePiece(new Piece(rank, "RED"));
       }
     }
   }
 
   makeMove(fromX, fromY, toX, toY) {
+    if (this.gamePhase !== "PLAY") {
+      throw new Error("Game not started yet");
+    }
     const moveData = this.board.generateMove(fromX, fromY, toX, toY);
     const { fromSpace, toSpace, attacker, defender } = moveData;
 
@@ -64,6 +96,12 @@ class Game {
 
     if (defender) {
       result = this.resolveBattle(attacker, defender, fromSpace, toSpace);
+      // Check if defender's player has any pieces left (only if game hasn't already ended)
+      if (!this.gameOver && !this.hasPiecesLeft(defender.getOwner())) {
+        this.gameOver = true;
+        this.winner = this.currentPlayer;
+        this.winReason = "no_pieces_left";
+      }
     } else {
       this.board.executeMove(fromSpace, toSpace);
       result = "MOVE";
@@ -94,6 +132,7 @@ class Game {
       this.board.executeMove(fromSpace, toSpace);
       this.gameOver = true;
       this.winner = this.currentPlayer;
+      this.winReason = "flag_captured";
       return "FLAG_CAPTURED";
     }
 
@@ -127,6 +166,18 @@ class Game {
 
   switchTurn() {
     this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
+  }
+
+  hasPiecesLeft(playerColor) {
+    for (let x = 0; x < this.board.size; x++) {
+      for (let y = 0; y < this.board.size; y++) {
+        const space = this.board.getSpace(x, y);
+        if (space.piece && space.piece.getOwner() === playerColor) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   getAvailableMovesForPiece(x, y) {
@@ -179,9 +230,16 @@ class Game {
     board: redactedBoard,
     currentPlayer: this.currentPlayer,
     gameOver: this.gameOver,
-    winner: this.winner
+    winner: this.winner,
+    winReason: this.winReason,
+    gamePhase: this.gamePhase,
+    availablePieces: Object.fromEntries(this.players[forPlayerColor].player.getAvailablePieces()),
+    setupComplete: this.players[forPlayerColor].player.isSetupComplete(),
+    showConfirmation: this.players[forPlayerColor].player.showConfirmation,
+    setupLayout: this.players[forPlayerColor].player.getLayout()
   };
 }
+
 
 }
 
