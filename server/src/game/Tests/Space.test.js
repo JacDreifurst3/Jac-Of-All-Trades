@@ -1,14 +1,16 @@
-const Space = require("../Space");
+﻿const Space = require("../Space");
 const Piece = require("../Piece");
 const { test, describe, expect } = require("@jest/globals");
 
 describe("Space Class", () => {
   test("should initialize correctly", () => {
     const space = new Space(1, 2, "LAND");
-    expect(space.x).toBe(1);
-    expect(space.y).toBe(2);
-    expect(space.terrain).toBe("LAND");
-    expect(space.piece).toBeNull();
+    expect({ x: space.x, y: space.y, terrain: space.terrain, piece: space.piece }).toEqual({
+      x: 1,
+      y: 2,
+      terrain: "LAND",
+      piece: null,
+    });
   });
 
   test("isOccupied should be false when empty land", () => {
@@ -33,10 +35,11 @@ describe("Space Class", () => {
     const piece = new Piece(6, "BLUE");
 
     space.placePiece(piece);
-    expect(space.piece).toBe(piece);
-
     const removed = space.removePiece();
-    expect(removed).toBe(piece);
-    expect(space.piece).toBeNull();
+
+    expect({ removed, currentPiece: space.piece }).toEqual({
+      removed: piece,
+      currentPiece: null,
+    });
   });
 });
