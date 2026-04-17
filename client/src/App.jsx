@@ -28,9 +28,6 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
 
-  if (!user) return <LoginPage />;
-  
-
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
@@ -122,6 +119,7 @@ export default function App() {
 
   const displayBoard = playerColor === "BLUE" ? [...boardWithSetup].reverse() : boardWithSetup;
 
+  if (!user) return <LoginPage />;
   if (!activeLobby) {
   return (
     <div className="lobby-screen">
@@ -303,12 +301,56 @@ export default function App() {
               ? "The flag has been captured!" 
               : "The opponent has no pieces left!"}
           </p>
+            <button
+              onClick={() => {
+                sessionStorage.removeItem("activeLobby");
+                sessionStorage.removeItem("playerColor");
+                setActiveLobby(null);
+              }}
+              style={{
+                marginTop: "20px",
+                padding: "12px 24px",
+                background: "rgba(245,221,129,0.15)",
+                border: "2px solid #f5dd81",
+                borderRadius: "6px",
+                color: "#f5dd81",
+                fontFamily: "Cinzel, serif",
+                fontSize: "14px",
+                fontWeight: "700",
+                letterSpacing: "0.1em",
+                cursor: "pointer",
+              }}
+            >
+              Return to Lobby
+            </button>
         </div>
       </div>
     )}
 
     <div className="status-bar">
       <div className="status-info">
+        <button
+          onClick={() => {
+            sessionStorage.removeItem("activeLobby");
+            sessionStorage.removeItem("playerColor");
+            setActiveLobby(null);
+          }}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(139,105,20,0.5)",
+            borderRadius: "4px",
+            color: "#8b7040",
+            fontFamily: "Rajdhani, sans-serif",
+            fontSize: "12px",
+            fontWeight: "700",
+            letterSpacing: "0.1em",
+            padding: "4px 10px",
+            cursor: "pointer",
+            textTransform: "uppercase",
+          }}
+        >
+          ⌂ Lobby
+        </button>
         <span style={{ textAlign: "center" }}>
           Lobby: <strong>{activeLobby}</strong>
         </span>

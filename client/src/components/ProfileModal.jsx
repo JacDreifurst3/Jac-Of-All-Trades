@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { auth } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import { updatePassword, updateEmail, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification, verifyBeforeUpdateEmail } from "firebase/auth";
+import { updatePassword, updateEmail, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification, verifyBeforeUpdateEmail, deleteUser } from "firebase/auth";
 
 export default function ProfileModal({ onClose }) {
   const { user, profile, setProfile } = useAuth();
@@ -168,6 +168,35 @@ export default function ProfileModal({ onClose }) {
     width: "100%",
     marginTop: "4px",
   };
+    // Deletes account from both Firebase and MongoDB
+    const handleDeleteAccount = async () => {
+        if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+        
+        setLoading(true);
+        try {
+            // Re-authenticate first since delete is a sensitive operation
+            await reauthenticate();
+            
+            // Delete from MongoDB first
+            const token = await user.getIdToken();
+            await fetch(`http://localhost:5001/api/users/${user.uid}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            // Then delete from Firebase
+            await deleteUser(auth.currentUser);
+            // AuthContext will detect the logout and redirect to login page automatically
+
+        } catch (err) {
+            if (err.code === "auth/requires-recent-login") {
+                showMessage("Please enter your current password first", true);
+            } else {
+                showMessage(err.message, true);
+            }
+            setLoading(false);
+        }
+    };
 
   return (
     // Dark overlay behind the modal
@@ -324,8 +353,9 @@ export default function ProfileModal({ onClose }) {
 
         {/* Tabs */}
         <div style={{ display: "flex", borderBottom: "2px solid rgba(139,105,20,0.4)" }}>
-          <button style={tabStyle("profile")} onClick={() => setActiveTab("profile")}>Profile</button>
-          <button style={tabStyle("security")} onClick={() => setActiveTab("security")}>Security</button>
+        <button style={tabStyle("profile")} onClick={() => setActiveTab("profile")}>Profile</button>
+        <button style={tabStyle("security")} onClick={() => setActiveTab("security")}>Security</button>
+        <button style={tabStyle("stats")} onClick={() => setActiveTab("stats")}>Stats</button>
         </div>
 
         {/* Tab content */}
@@ -446,12 +476,107 @@ export default function ProfileModal({ onClose }) {
               </button>
             </>
           )}
+          {activeTab === "stats" && (
+            <>
+                <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: "12px",
+                marginBottom: "8px",
+                }}>
+                {[
+                    { label: "Games Played", value: profile?.gamesPlayed ?? 0, color: "#f5dd81" },
+                    { label: "Wins", value: profile?.wins ?? 0, color: "#4caf50" },
+                    { label: "Losses", value: profile?.losses ?? 0, color: "#f44336" },
+                ].map(stat => (
+                    <div key={stat.label} style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(139,105,20,0.3)",
+                    borderRadius: "8px",
+                    padding: "16px 8px",
+                    textAlign: "center",
+                    }}>
+                    <div style={{
+                        color: stat.color,
+                        fontFamily: "Cinzel, serif",
+                        fontSize: "32px",
+                        fontWeight: "700",
+                        lineHeight: 1,
+                        marginBottom: "6px",
+                    }}>
+                        {stat.value}
+                    </div>
+                    <div style={{
+                        color: "#8b7040",
+                        fontFamily: "Rajdhani, sans-serif",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                    }}>
+                        {stat.label}
+                    </div>
+                    </div>
+                ))}
+                </div>
+
+                {/* Win rate bar */}
+                <div style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(139,105,20,0.3)",
+                borderRadius: "8px",
+                padding: "14px 16px",
+                }}>
+                <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "8px",
+                }}>
+                    <span style={{
+                    color: "#8b7040",
+                    fontFamily: "Rajdhani, sans-serif",
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    }}>Win Rate</span>
+                    <span style={{
+                    color: "#f5dd81",
+                    fontFamily: "Cinzel, serif",
+                    fontSize: "14px",
+                    fontWeight: "700",
+                    }}>
+                    {profile?.gamesPlayed > 0
+                        ? Math.round((profile.wins / profile.gamesPlayed) * 100)
+                        : 0}%
+                    </span>
+                </div>
+                <div style={{
+                    height: "8px",
+                    background: "rgba(255,255,255,0.08)",
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                }}>
+                    <div style={{
+                    height: "100%",
+                    width: `${profile?.gamesPlayed > 0 ? (profile.wins / profile.gamesPlayed) * 100 : 0}%`,
+                    background: "linear-gradient(90deg, #8b6914, #f5dd81)",
+                    borderRadius: "4px",
+                    transition: "width 0.5s ease",
+                    }} />
+                </div>
+                </div>
+                </>
+                )}
         </div>
 
-        {/* Sign out button at the bottom */}
+        {/* Sign out and delete — always visible at bottom */}
         <div style={{
           padding: "12px 20px",
           borderTop: "2px solid rgba(139,105,20,0.4)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
         }}>
           <button
             onClick={handleSignOut}
@@ -471,6 +596,25 @@ export default function ProfileModal({ onClose }) {
             }}
           >
             Sign Out
+          </button>
+          <button
+            onClick={handleDeleteAccount}
+            style={{
+              width: "100%",
+              padding: "10px",
+              background: "transparent",
+              border: "1px solid rgba(180,30,30,0.4)",
+              borderRadius: "6px",
+              color: "rgba(255,80,80,0.5)",
+              fontFamily: "Rajdhani, sans-serif",
+              fontSize: "12px",
+              fontWeight: "700",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            Delete Account
           </button>
         </div>
       </div>

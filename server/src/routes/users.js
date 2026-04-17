@@ -16,4 +16,7 @@ router.patch('/:uid', verifyToken, userController.updateProfile);
 // PATCH /api/users/:uid/stats — protected
 router.patch('/:uid/stats', verifyToken, userController.updateStats);
 
+// DELETE /api/users/:uid — protected, delete own account
+router.delete('/:uid', verifyToken, userController.deleteAccount);
+
 module.exports = router;

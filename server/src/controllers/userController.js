@@ -91,3 +91,22 @@ exports.getLeaderboard = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
+// DELETE /api/users/:uid — removes user from MongoDB
+exports.deleteAccount = async (req, res) => {
+    try {
+        if (req.uid !== req.params.uid) {
+            return res.status(403).json({ message: "You can only delete your own account" });
+        }
+
+        const user = await User.findByIdAndDelete(req.params.uid);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "Account deleted" });
+    } catch (error) {
+        console.error("Delete Account Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
