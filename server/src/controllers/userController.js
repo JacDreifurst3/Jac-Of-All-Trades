@@ -1,6 +1,5 @@
 const User = require('../models/UserModel');
 
-// GET /api/users/:uid
 exports.getProfile = async (req, res) => {
     try {
         const user = await User.findById(req.params.uid);
@@ -14,8 +13,11 @@ exports.getProfile = async (req, res) => {
     }
 };
 
-// PATCH /api/users/:uid
 exports.updateProfile = async (req, res) => {
+    // Make sure users can only edit their own profile
+    if (req.uid !== req.params.uid) {
+        return res.status(403).json({ message: "You can only update your own profile" });
+    }
     try {
         const allowedUpdates = ['username', 'profilePicUrl'];
         const updates = {};
@@ -43,7 +45,6 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-// PATCH /api/users/:uid/stats
 exports.updateStats = async (req, res) => {
     try {
         const { result } = req.body;
@@ -77,7 +78,6 @@ exports.updateStats = async (req, res) => {
     }
 };
 
-// GET /api/users/leaderboard
 exports.getLeaderboard = async (req, res) => {
     try {
         const topPlayers = await User.find()

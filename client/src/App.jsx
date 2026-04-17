@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { PieceIcon, LAKES, BOARD_SIZE } from "./components/Pieces.jsx";
 import { useGame } from "./hooks/useGame";
+import { useAuth } from "./context/AuthContext";
+import LoginPage from "./pages/LoginPage";
+import ProfileModal from "./components/ProfileModal";
 
 const RANK_NAMES = {
   0: "Flag", 1: "Spy (1)", 2: "Scout (2)", 3: "Miner (3)", 4: "Sergeant (4)",
@@ -13,14 +16,25 @@ const rankName = (rank) => RANK_NAMES[rank] ?? `Rank ${rank}`;
 const rankLabel = (rank) => rank === 11 ? "11" : rank === 0 ? "0" : String(rank);
 
 export default function App() {
+  const { user, profile } = useAuth();
   const [lobbyInput, setLobbyInput] = useState("");
-  const [activeLobby, setActiveLobby] = useState(null);
-  const [playerColor, setPlayerColor] = useState("RED");
+  const [activeLobby, setActiveLobby] = useState(
+    () => sessionStorage.getItem("activeLobby") || null
+  );
+  const [playerColor, setPlayerColor] = useState(
+    () => sessionStorage.getItem("playerColor") || "RED"
+  );
   const [lobbyError, setLobbyError] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
 
+  if (!user) return <LoginPage />;
+  
+
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
-    setActiveLobby(false);
+    sessionStorage.removeItem("activeLobby");
+    sessionStorage.removeItem("playerColor");
+    setActiveLobby(null);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   });
 
@@ -109,33 +123,97 @@ export default function App() {
   const displayBoard = playerColor === "BLUE" ? [...boardWithSetup].reverse() : boardWithSetup;
 
   if (!activeLobby) {
-    return (
-      <div className="lobby-screen">
-        <h1>Stratego</h1>
-        {lobbyError && <div className="error-toast">{lobbyError}</div>}
-        <div className="setup-controls">
-          <input
-            value={lobbyInput}
-            onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
-            placeholder="Enter Lobby Code"
-          />
-          <div className="team-selector">
-            <button
-              className={`reg-btn red ${playerColor === "RED" ? "active" : ""}`}
-              onClick={() => { setPlayerColor("RED"); setLobbyError(null); }}
-            >Red Team</button>
-            <button
-              className={`reg-btn blue ${playerColor === "BLUE" ? "active" : ""}`}
-              onClick={() => { setPlayerColor("BLUE"); setLobbyError(null); }}
-            >Blue Team</button>
-          </div>
-          <button className="join-btn" onClick={() => setActiveLobby(lobbyInput)}>
-            Join Game
-          </button>
+  return (
+    <div className="lobby-screen">
+      {/* Profile icon button */}
+      <button
+        onClick={() => setShowProfile(true)}
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "28px",
+          background: "rgba(139,105,20,0.2)",
+          border: "2px solid #8b6914",
+          padding: "8px 12px",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "5px",
+          fontFamily: "Cinzel, serif",
+          boxShadow: "0 0 12px rgba(139,105,20,0.3)",
+        }}
+      >
+        <div style={{
+          width: "52px",
+          height: "52px",
+          borderRadius: "50%",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "rgba(139,105,20,0.3)",
+          fontSize: "22px",
+          border: "2px solid #c9a84c",
+        }}>
+          {profile?.profilePicUrl ? (
+            <img
+              src={profile.profilePicUrl}
+              alt="avatar"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={e => { e.target.style.display = "none"; }}
+            />
+          ) : (
+            (profile?.username || "?")[0].toUpperCase()
+          )}
         </div>
+        <span style={{
+          fontFamily: "Rajdhani, sans-serif",
+          fontSize: "12px",
+          fontWeight: "700",
+          letterSpacing: "0.1em",
+          color: "#c9a84c",
+          textTransform: "uppercase",
+          maxWidth: "70px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}>
+          {profile?.username || "Profile"}
+        </span>
+      </button>
+
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+
+      <h1>Stratego</h1>
+      {lobbyError && <div className="error-toast">{lobbyError}</div>}
+      <div className="setup-controls">
+        <input
+          value={lobbyInput}
+          onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
+          placeholder="Enter Lobby Code"
+        />
+        <div className="team-selector">
+          <button
+            className={`reg-btn red ${playerColor === "RED" ? "active" : ""}`}
+            onClick={() => { setPlayerColor("RED"); setLobbyError(null); }}
+          >Red Team</button>
+          <button
+            className={`reg-btn blue ${playerColor === "BLUE" ? "active" : ""}`}
+            onClick={() => { setPlayerColor("BLUE"); setLobbyError(null); }}
+          >Blue Team</button>
+        </div>
+        <button className="join-btn" onClick={() => {
+          sessionStorage.setItem("activeLobby", lobbyInput);
+          sessionStorage.setItem("playerColor", playerColor);
+          setActiveLobby(lobbyInput);
+        }}>
+          Join Game
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   const handleSquareClick = (space) => {
     if (gameOver) return;

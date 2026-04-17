@@ -240,7 +240,57 @@ class Game {
   };
 }
 
+// Converts the game to plain data for MongoDB
+  serializeForDB() {
+    const board = this.board.serialize();
+    return {
+      currentPlayer: this.currentPlayer,
+      gamePhase: this.gamePhase,
+      gameOver: this.gameOver,
+      winner: this.winner,
+      winReason: this.winReason,
+      board: board,
+      redLayout: this.players.RED.player.getLayout(),
+      blueLayout: this.players.BLUE.player.getLayout(),
+    };
+  }
 
+  // Restores a game from saved MongoDB data
+  static loadFromDB(savedData) {
+    const game = new Game();
+    game.currentPlayer = savedData.currentPlayer;
+    game.gamePhase = savedData.gamePhase;
+    game.gameOver = savedData.gameOver;
+    game.winner = savedData.winner;
+    game.winReason = savedData.winReason;
+
+    // Restore player layouts
+    if (savedData.redLayout) {
+      game.players.RED.player.layout = savedData.redLayout;
+      game.players.RED.player.availablePieces = new Map();
+      game.players.RED.player.setup = "COMPLETE";
+    }
+    if (savedData.blueLayout) {
+      game.players.BLUE.player.layout = savedData.blueLayout;
+      game.players.BLUE.player.availablePieces = new Map();
+      game.players.BLUE.player.setup = "COMPLETE";
+    }
+
+    // Restore board pieces
+    if (savedData.board && savedData.gamePhase === "PLAY") {
+      for (const row of savedData.board) {
+        for (const space of row) {
+          if (space.piece) {
+            const piece = new Piece(space.piece.rank, space.piece.owner);
+            if (space.piece.revealed) piece.reveal();
+            game.board.getSpace(space.x, space.y).placePiece(piece);
+          }
+        }
+      }
+    }
+
+    return game;
+  }
 }
 
 

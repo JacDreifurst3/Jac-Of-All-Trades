@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { useAuth } from "../context/AuthContext";
 
 const socket = io("http://localhost:5001", {
     transports: ["websocket"],
@@ -31,12 +32,12 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const [winReason, setWinReason] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!lobbyCode) return;
 
-    socket.emit("joinGame", { lobbyCode, playerColor, uid: "testuser123" });
-    // testuser123 hardcoded until auth is hooked up on the front end 
+    socket.emit("joinGame", { lobbyCode, playerColor, uid: user?.uid });
 
     socket.on("gameStateUpdate", (state) => {
       setBoard(state.board.flat());
