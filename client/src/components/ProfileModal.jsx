@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { auth } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import { updatePassword, updateEmail, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification, verifyBeforeUpdateEmail, deleteUser } from "firebase/auth";
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth";
 
 export default function ProfileModal({ onClose }) {
   const { user, profile, setProfile } = useAuth();
   const [username, setUsername] = useState(profile?.username || "");
   const [profilePicUrl, setProfilePicUrl] = useState(profile?.profilePicUrl || "");
-  const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [message, setMessage] = useState(null);
@@ -59,35 +58,6 @@ export default function ProfileModal({ onClose }) {
     }
   };
 
-  // Updates email in Firebase — send verification email
-  const handleUpdateEmail = async () => {
-    if (!newEmail) {
-        showMessage("Please enter a new email address", true);
-        return;
-    }
-    setLoading(true);
-    try {
-        await reauthenticate();
-        // Send verification to the NEW email address — Firebase confirms it before switching
-        await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
-        showMessage("Verification email sent to your new address! Click the link to confirm the change.");
-        setNewEmail("");
-        setCurrentPassword("");
-    } catch (err) {
-        if (err.code === "auth/requires-recent-login") {
-            showMessage("Please enter your current password first", true);
-        } else if (err.code === "auth/email-already-in-use") {
-            showMessage("That email is already in use", true);
-        } else if (err.code === "auth/invalid-email") {
-            showMessage("Please enter a valid email address", true);
-        } else {
-            showMessage(err.message, true);
-        }
-    } finally {
-        setLoading(false);
-    }
-};
-
   // Updates password in Firebase — requires recent login
   const handleUpdatePassword = async () => {
     setLoading(true);
@@ -102,6 +72,8 @@ export default function ProfileModal({ onClose }) {
         showMessage("Please enter your current password first", true);
       } else if (err.code === "auth/weak-password") {
         showMessage("Password must be at least 6 characters", true);
+      } else if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        showMessage("Current password is incorrect", true);
       } else {
         showMessage(err.message, true);
       }
@@ -437,23 +409,6 @@ export default function ProfileModal({ onClose }) {
                   placeholder="Current password"
                 />
               </div>
-              <div>
-                <div style={labelStyle}>New Email</div>
-                <input
-                  style={inputStyle}
-                  type="email"
-                  value={newEmail}
-                  onChange={e => setNewEmail(e.target.value)}
-                  placeholder="New email address"
-                />
-              </div>
-              <button
-                style={saveButtonStyle}
-                onClick={handleUpdateEmail}
-                disabled={loading || !newEmail}
-              >
-                {loading ? "Updating..." : "Update Email"}
-              </button>
 
               <div style={{ height: "1px", background: "rgba(139,105,20,0.4)" }} />
 
