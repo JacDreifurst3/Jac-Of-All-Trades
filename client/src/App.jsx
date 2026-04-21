@@ -243,6 +243,10 @@ if (!activeLobby) {
   return (
     <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
       {profileCorner}
+
+      <button className="rules-btn" onClick={() => setShowRules(true)}>
+        📜 Rules
+      </button>
       <div className="setup-controls">
         <div className="lobby-card">
           <div className="lobby-card__body">
@@ -320,6 +324,14 @@ if (!activeLobby) {
   return (
 <div className="game-layout">
   {profileCorner}
+  {gamePhase === "SETUP" && (
+    <>
+      <button className="rules-btn" onClick={() => setShowRules(true)}>
+        📜 Rules
+      </button>
+      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
+    </>
+  )}
   {gamePhase === "SETUP" ? (
     <SetupSidebar
       availablePieces={availablePieces}
