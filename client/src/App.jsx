@@ -5,6 +5,9 @@ import { PieceIcon, LAKES, BOARD_SIZE } from "./components/Pieces.jsx";
 import { useGame } from "./hooks/useGame";
 import coverImage from "./assets/cover.png";
 import lobbyBg from "./assets/lobby.png";
+import { useAuth } from "./context/AuthContext";
+import LoginPage from "./pages/LoginPage";
+import ProfileModal from "./components/ProfileModal";
 
 const RANK_NAMES = {
   0: "Flag", 1: "Spy (1)", 2: "Scout (2)", 3: "Miner (3)", 4: "Sergeant (4)",
@@ -17,15 +20,23 @@ const rankLabel = (rank) => rank === 11 ? "11" : rank === 0 ? "0" : String(rank)
 
 export default function App() {
   const [showCover, setShowCover] = useState(true);
+  const { user, profile } = useAuth();
   const [lobbyInput, setLobbyInput] = useState("");
-  const [activeLobby, setActiveLobby] = useState(null);
-  const [playerColor, setPlayerColor] = useState("RED");
+  const [activeLobby, setActiveLobby] = useState(
+    () => sessionStorage.getItem("activeLobby") || null
+  );
+  const [playerColor, setPlayerColor] = useState(
+    () => sessionStorage.getItem("playerColor") || "RED"
+  );
   const [lobbyError, setLobbyError] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
 
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
-    setActiveLobby(false);
+    sessionStorage.removeItem("activeLobby");
+    sessionStorage.removeItem("playerColor");
+    setActiveLobby(null);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   });
 
@@ -133,67 +144,141 @@ export default function App() {
 
   const displayBoard = playerColor === "BLUE" ? [...boardWithSetup].reverse() : boardWithSetup;
 
-  if (showCover) {
-    return (
-      <div className="cover-screen" onClick={() => setShowCover(false)}>
-        <img
-          className="cover-image"
-          src={coverImage}
-          alt="Stratego — Battle for Glory"
-          draggable={false}
-        />
-        <div className="cover-banner">
-          <button
-            className="cover-play-btn"
-            onClick={(e) => { e.stopPropagation(); setShowCover(false); }}
-          >
-            ⚔ PLAY
-          </button>
-        </div>
+if (showCover) {
+  return (
+    <div className="cover-screen" onClick={() => setShowCover(false)}>
+      <img
+        className="cover-image"
+        src={coverImage}
+        alt="Stratego — Battle for Glory"
+        draggable={false}
+      />
+      <div className="cover-banner">
+        <button
+          className="cover-play-btn"
+          onClick={(e) => { e.stopPropagation(); setShowCover(false); }}
+        >
+          ⚔ PLAY
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  if (!activeLobby) {
-    return (
-      <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
-        {lobbyError && <div className="error-toast">{lobbyError}</div>}
+if (!user) return <LoginPage />;
 
-        <div className="setup-controls">
-          <div className="lobby-card">
-            <div className="lobby-card__header">
-              <div className="lobby-title">STRATEGO</div>
+if (!activeLobby) {
+  return (
+    <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
+      {/* Profile icon button */}
+      <button
+        onClick={() => setShowProfile(true)}
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "28px",
+          background: "rgba(139,105,20,0.2)",
+          border: "2px solid #8b6914",
+          padding: "8px 12px",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "5px",
+          fontFamily: "Cinzel, serif",
+          boxShadow: "0 0 12px rgba(139,105,20,0.3)",
+        }}
+      >
+        <div style={{
+          width: "52px",
+          height: "52px",
+          borderRadius: "50%",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "rgba(139,105,20,0.3)",
+          fontSize: "22px",
+          border: "2px solid #c9a84c",
+        }}>
+          {profile?.profilePicUrl ? (
+            <img
+              src={profile.profilePicUrl}
+              alt="avatar"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={e => { e.target.style.display = "none"; }}
+            />
+          ) : (
+            (profile?.username || "?")[0].toUpperCase()
+          )}
+        </div>
+        <span style={{
+          fontFamily: "Rajdhani, sans-serif",
+          fontSize: "12px",
+          fontWeight: "700",
+          letterSpacing: "0.1em",
+          color: "#c9a84c",
+          textTransform: "uppercase",
+          maxWidth: "70px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}>
+          {profile?.username || "Profile"}
+        </span>
+      </button>
+
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+
+      {lobbyError && <div className="error-toast">{lobbyError}</div>}
+
+      <div className="setup-controls">
+        <div className="lobby-card">
+          <div className="lobby-card__header">
+            <div className="lobby-title">STRATEGO</div>
+          </div>
+
+          <div className="lobby-card__body">
+            <div className="lobby-input-group">
+              <div className="lobby-section-label">Join an existing game</div>
+              <input
+                value={lobbyInput}
+                onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
+                placeholder="Enter Lobby Code"
+              />
             </div>
 
-            <div className="lobby-card__body">
-              <div className="lobby-input-group">
-                <div className="lobby-section-label">Join an existing game</div>
-                <input
-                  value={lobbyInput}
-                  onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
-                  placeholder="Enter Lobby Code"
-                />
-              </div>
+            <button className="join-btn" onClick={() => { setPlayerColor("BLUE"); setActiveLobby(lobbyInput); }}>
+              ⚔ Join Game
+            </button>
 
-              <button className="join-btn" onClick={() => { setPlayerColor("BLUE"); setActiveLobby(lobbyInput); }}>
-                ⚔ Join Game
-              </button>
+            <div className="lobby-divider">or</div>
 
-              <div className="lobby-divider">or</div>
-
-              <button
-                className="join-btn primary"
-                onClick={handleCreateGame}
-                disabled={isCreating}
-              >
-                {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
-              </button>
-            </div>
+            <button
+              className="join-btn primary"
+              onClick={handleCreateGame}
+              disabled={isCreating}
+            >
+              {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
+            </button>
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+        </div>
+        <button className="join-btn" onClick={() => {
+          sessionStorage.setItem("activeLobby", lobbyInput);
+          sessionStorage.setItem("playerColor", playerColor);
+          setActiveLobby(lobbyInput);
+        }}>
+          Join Game
+        </button>
+      </div>
+    </div>
+  );
+}
 
   if (isWaitingForOpponent) {
   return (
@@ -305,12 +390,56 @@ export default function App() {
               ? "The flag has been captured!" 
               : "The opponent has no pieces left!"}
           </p>
+            <button
+              onClick={() => {
+                sessionStorage.removeItem("activeLobby");
+                sessionStorage.removeItem("playerColor");
+                setActiveLobby(null);
+              }}
+              style={{
+                marginTop: "20px",
+                padding: "12px 24px",
+                background: "rgba(245,221,129,0.15)",
+                border: "2px solid #f5dd81",
+                borderRadius: "6px",
+                color: "#f5dd81",
+                fontFamily: "Cinzel, serif",
+                fontSize: "14px",
+                fontWeight: "700",
+                letterSpacing: "0.1em",
+                cursor: "pointer",
+              }}
+            >
+              Return to Lobby
+            </button>
         </div>
       </div>
     )}
 
     <div className="status-bar">
       <div className="status-info">
+        <button
+          onClick={() => {
+            sessionStorage.removeItem("activeLobby");
+            sessionStorage.removeItem("playerColor");
+            setActiveLobby(null);
+          }}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(139,105,20,0.5)",
+            borderRadius: "4px",
+            color: "#8b7040",
+            fontFamily: "Rajdhani, sans-serif",
+            fontSize: "12px",
+            fontWeight: "700",
+            letterSpacing: "0.1em",
+            padding: "4px 10px",
+            cursor: "pointer",
+            textTransform: "uppercase",
+          }}
+        >
+          ⌂ Lobby
+        </button>
         <span style={{ textAlign: "center" }}>
           Lobby: <strong>{activeLobby}</strong>
         </span>

@@ -1,4 +1,4 @@
-const Game = require("../Game");
+﻿const Game = require("../Game");
 const Piece = require("../Piece");
 const { test, describe, expect, beforeEach } = require("@jest/globals");
 
@@ -131,8 +131,10 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     to.placePiece(defender);
     game.makeMove(0, 0, 0, 1);
 
-    expect(to.piece).toBe(defender);
-    expect(from.piece).toBeNull();
+    expect({ toPiece: to.piece, fromPiece: from.piece }).toEqual({
+      toPiece: defender,
+      fromPiece: null,
+    });
   });
 
   test("same rank eliminates both pieces", () => {
@@ -151,8 +153,10 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     to.placePiece(new Piece(5, "BLUE"));
     game.makeMove(0, 0, 0, 1);
 
-    expect(from.piece).toBeNull();
-    expect(to.piece).toBeNull();
+    expect({ fromPiece: from.piece, toPiece: to.piece }).toEqual({
+      fromPiece: null,
+      toPiece: null,
+    });
   });
 
   test("miner defuses bomb", () => {
@@ -183,33 +187,42 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     expect(game.makeMove(0, 0, 0, 1)).toBe("FLAG_CAPTURED");
   });
 
-  test("flag capture sets game over and winner", () => {
+  test("flag capture sets game state after flag capture", () => {
     const from = game.board.getSpace(0, 0);
     const to = game.board.getSpace(0, 1);
     from.placePiece(new Piece(6, "RED"));
     to.placePiece(new Piece(0, "BLUE"));
     game.makeMove(0, 0, 0, 1);
 
-    expect(game.gameOver).toBe(true);
-    expect(game.winner).toBe("RED");
-    expect(game.winReason).toBe("flag_captured");
+    expect({
+      gameOver: game.gameOver,
+      winner: game.winner,
+      winReason: game.winReason,
+    }).toEqual({
+      gameOver: true,
+      winner: "RED",
+      winReason: "flag_captured",
+    });
   });
 
-  test("eliminating last piece sets game over and winner", () => {
-    // Place a piece for BLUE (the only piece)
+  test("eliminating last piece sets game state after win", () => {
     const blueSpace = game.board.getSpace(0, 1);
     blueSpace.placePiece(new Piece(5, "BLUE"));
-    
-    // Place a higher rank piece for RED
+
     const redSpace = game.board.getSpace(0, 0);
     redSpace.placePiece(new Piece(6, "RED"));
-    
-    // RED attacks and eliminates the last BLUE piece
+
     game.makeMove(0, 0, 0, 1);
 
-    expect(game.gameOver).toBe(true);
-    expect(game.winner).toBe("RED");
-    expect(game.winReason).toBe("no_pieces_left");
+    expect({
+      gameOver: game.gameOver,
+      winner: game.winner,
+      winReason: game.winReason,
+    }).toEqual({
+      gameOver: true,
+      winner: "RED",
+      winReason: "no_pieces_left",
+    });
   });
 
   test("spy assassinates marshal", () => {
@@ -248,12 +261,14 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     expect(() => game.placePiece("RED", 0, 0, 5)).toThrow("Not in setup phase");
   });
 
-  test("switchTurn toggles currentPlayer", () => {
-    expect(game.currentPlayer).toBe("RED");
+  test("switchTurn toggles currentPlayer through RED and BLUE", () => {
+    const states = [game.currentPlayer];
     game.switchTurn();
-    expect(game.currentPlayer).toBe("BLUE");
+    states.push(game.currentPlayer);
     game.switchTurn();
-    expect(game.currentPlayer).toBe("RED");
+    states.push(game.currentPlayer);
+
+    expect(states).toEqual(["RED", "BLUE", "RED"]);
   });
 
   test("getAvailableMovesForPiece returns array for movable piece", () => {
@@ -337,15 +352,25 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     game.gamePhase = "SETUP";
     game.placePiece("RED", 0, 0, 5);
     game.moveSetupPiece("RED", 0, 0, 0, 1);
-    expect(game.players.RED.player.getLayout()[0][1]).toBe(5);
-    expect(game.players.RED.player.getLayout()[0][0]).toBe(null);
+    expect({
+      moved: game.players.RED.player.getLayout()[0][1],
+      empty: game.players.RED.player.getLayout()[0][0],
+    }).toEqual({
+      moved: 5,
+      empty: null,
+    });
   });
 
   test("randomizePlayerLayout fills the player setup and enables confirmation", () => {
     game.gamePhase = "SETUP";
     game.randomizePlayerLayout("RED");
-    expect(game.players.RED.player.getLayout().flat().every((cell) => cell !== null)).toBe(true);
-    expect(game.players.RED.player.showConfirmation).toBe(true);
+    expect({
+      filled: game.players.RED.player.getLayout().flat().every((cell) => cell !== null),
+      confirmed: game.players.RED.player.showConfirmation,
+    }).toEqual({
+      filled: true,
+      confirmed: true,
+    });
   });
 
   test("markPlayerSetupComplete keeps game in SETUP until both players confirm", () => {
@@ -354,8 +379,13 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     game.randomizePlayerLayout("BLUE");
 
     game.markPlayerSetupComplete("RED");
-    expect(game.players.RED.player.isSetupComplete()).toBe(true);
-    expect(game.gamePhase).toBe("SETUP");
+    expect({
+      isSetupComplete: game.players.RED.player.isSetupComplete(),
+      phase: game.gamePhase,
+    }).toEqual({
+      isSetupComplete: true,
+      phase: "SETUP",
+    });
   });
 
   test("markPlayerSetupComplete transitions game to PLAY when both players confirm", () => {
@@ -367,6 +397,16 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     game.markPlayerSetupComplete("BLUE");
 
     expect(game.gamePhase).toBe("PLAY");
+  });
+
+  test("markPlayerSetupComplete populates board when both players confirm", () => {
+    game.gamePhase = "SETUP";
+    game.randomizePlayerLayout("RED");
+    game.randomizePlayerLayout("BLUE");
+
+    game.markPlayerSetupComplete("RED");
+    game.markPlayerSetupComplete("BLUE");
+
     expect(game.board.getSpace(0, 0).piece).not.toBeNull();
   });
 });

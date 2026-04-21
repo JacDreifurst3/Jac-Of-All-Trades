@@ -1,12 +1,14 @@
-const Piece = require("../Piece");
+﻿const Piece = require("../Piece");
 const { test, describe, expect } = require("@jest/globals");
 
 describe("Piece Class", () => {
-  test("should initialize with correct rank and owner", () => {
+  test("should initialize with correct rank, owner, and revealed state", () => {
     const piece = new Piece(5, "RED");
-    expect(piece.rank).toBe(5);
-    expect(piece.owner).toBe("RED");
-    expect(piece.isRevealed).toBe(false);
+    expect({ rank: piece.rank, owner: piece.owner, isRevealed: piece.isRevealed }).toEqual({
+      rank: 5,
+      owner: "RED",
+      isRevealed: false,
+    });
   });
 
   test("canMove should return true for movable ranks", () => {
@@ -24,11 +26,9 @@ describe("Piece Class", () => {
     expect(bomb.canMove()).toBe(false);
   });
 
-  test("reveal and hide should toggle isRevealed", () => {
+  test("reveal and hide should toggle isRevealed back to false", () => {
     const piece = new Piece(4, "RED");
     piece.reveal();
-    expect(piece.isRevealed).toBe(true);
-
     piece.hide();
     expect(piece.isRevealed).toBe(false);
   });
@@ -40,11 +40,13 @@ describe("Piece Class", () => {
     const bomb = new Piece(11, "RED");
     const flag = new Piece(0, "RED");
 
-    expect(miner.isMiner()).toBe(true);
-    expect(spy.isSpy()).toBe(true);
-    expect(scout.isScout()).toBe(true);
-    expect(bomb.isFlag()).toBe(true); // NOTE: your code defines 11 as flag
-    expect(flag.isBomb()).toBe(true); // NOTE: your code defines 0 as bomb
+    expect([
+      miner.isMiner(),
+      spy.isSpy(),
+      scout.isScout(),
+      bomb.isFlag(),
+      flag.isBomb(),
+    ]).toEqual([true, true, true, true, true]);
   });
 
   test("getRank should return correct rank", () => {

@@ -90,18 +90,29 @@ describe("Player Class", () => {
     expect(player.getAvailablePieces()).toBe(player.availablePieces);
   });
 
-  test("movePiece moves a piece to an empty destination", () => {
+  test("movePiece moves a piece to destination", () => {
     player.placePiece(0, 0, 5);
     player.movePiece(0, 0, 1, 1);
     expect(player.layout[1][1]).toBe(5);
+  });
+
+  test("movePiece clears the source cell when moving to empty destination", () => {
+    player.placePiece(0, 0, 5);
+    player.movePiece(0, 0, 1, 1);
     expect(player.layout[0][0]).toBe(null);
   });
 
-  test("movePiece swaps with another piece when destination is occupied", () => {
+  test("movePiece swaps with another piece when destination is occupied and updates destination", () => {
     player.placePiece(0, 0, 5);
     player.placePiece(0, 1, 6);
     player.movePiece(0, 0, 0, 1);
     expect(player.layout[0][1]).toBe(5);
+  });
+
+  test("movePiece swaps with another piece when destination is occupied and updates source", () => {
+    player.placePiece(0, 0, 5);
+    player.placePiece(0, 1, 6);
+    player.movePiece(0, 0, 0, 1);
     expect(player.layout[0][0]).toBe(6);
   });
 
@@ -114,9 +125,13 @@ describe("Player Class", () => {
     expect(player.layout.flat().every((cell) => cell !== null)).toBe(true);
   });
 
-  test("randomizeLayout clears availablePieces and enables confirmation", () => {
+  test("randomizeLayout clears availablePieces", () => {
     player.randomizeLayout();
     expect(player.availablePieces.size).toBe(0);
+  });
+
+  test("randomizeLayout enables confirmation", () => {
+    player.randomizeLayout();
     expect(player.showConfirmation).toBe(true);
   });
 
@@ -128,5 +143,66 @@ describe("Player Class", () => {
     player.randomizeLayout();
     player.markSetupComplete();
     expect(player.isSetupComplete()).toBe(true);
+  });
+
+  test("movePiece leaves the same cell unchanged when source and destination are the same", () => {
+    player.placePiece(0, 0, 5);
+
+    player.movePiece(0, 0, 0, 0);
+
+    expect(player.layout[0][0]).toBe(5);
+  });
+
+  test("movePiece keeps showConfirmation false when source and destination are the same", () => {
+    player.placePiece(0, 0, 5);
+
+    player.movePiece(0, 0, 0, 0);
+
+    expect(player.showConfirmation).toBe(false);
+  });
+
+  test("placePiece sets the cell when last remaining piece is placed", () => {
+    player.randomizeLayout();
+
+    player.layout = Array.from({ length: 4 }, () => new Array(10).fill(null));
+    player.availablePieces = new Map([[5, 1]]);
+    player.showConfirmation = false;
+
+    player.placePiece(0, 0, 5);
+
+    expect(player.layout[0][0]).toBe(5);
+  });
+
+  test("placePiece clears availablePieces when the last remaining piece is placed", () => {
+    player.randomizeLayout();
+
+    player.layout = Array.from({ length: 4 }, () => new Array(10).fill(null));
+    player.availablePieces = new Map([[5, 1]]);
+    player.showConfirmation = false;
+
+    player.placePiece(0, 0, 5);
+
+    expect(player.availablePieces.size).toBe(0);
+  });
+
+  test("placePiece enables showConfirmation when the last remaining piece is placed", () => {
+    player.randomizeLayout();
+
+    player.layout = Array.from({ length: 4 }, () => new Array(10).fill(null));
+    player.availablePieces = new Map([[5, 1]]);
+    player.showConfirmation = false;
+
+    player.placePiece(0, 0, 5);
+
+    expect(player.showConfirmation).toBe(true);
+  });
+
+  test("movePiece sets showConfirmation to true when no pieces remain to place", () => {
+    player.randomizeLayout();
+    player.showConfirmation = false;
+
+    player.movePiece(0, 0, 0, 1);
+
+    expect(player.showConfirmation).toBe(true);
   });
 });
