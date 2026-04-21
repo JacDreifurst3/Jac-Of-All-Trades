@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import "./App.css";
 import { PieceIcon, LAKES, BOARD_SIZE } from "./components/Pieces.jsx";
 import { useGame } from "./hooks/useGame";
+import coverImage from "./assets/cover.png";
+import lobbyBg from "./assets/lobby.png";
 import { useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import ProfileModal from "./components/ProfileModal";
@@ -16,6 +19,7 @@ const rankName = (rank) => RANK_NAMES[rank] ?? `Rank ${rank}`;
 const rankLabel = (rank) => rank === 11 ? "11" : rank === 0 ? "0" : String(rank);
 
 export default function App() {
+  const [showCover, setShowCover] = useState(true);
   const { user, profile } = useAuth();
   const [lobbyInput, setLobbyInput] = useState("");
   const [activeLobby, setActiveLobby] = useState(
@@ -27,6 +31,7 @@ export default function App() {
   const [lobbyError, setLobbyError] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
+  const [isCreating, setIsCreating] = useState(false);
 
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
@@ -40,6 +45,26 @@ export default function App() {
   const [selectedSetupSlot, setSelectedSetupSlot] = useState(null);
   const attackerColorRef = useRef(null);
 
+
+
+  const handleCreateGame = async () => {
+    setIsCreating(true);
+    setLobbyError(null);
+    try {
+      const response = await axios.post('http://localhost:5001/api/games/create');
+      
+      const { lobbyCode } = response.data;
+      
+      setActiveLobby(lobbyCode);
+    } catch (err) {
+      console.error("Failed to create game", err);
+      setLobbyError("Failed to connect to server.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
   useEffect(() => {
     if (error) {
       setMessages(prev => [{ id: Date.now(), text: error }, ...prev].slice(0, 20));
@@ -119,10 +144,32 @@ export default function App() {
 
   const displayBoard = playerColor === "BLUE" ? [...boardWithSetup].reverse() : boardWithSetup;
 
-  if (!user) return <LoginPage />;
-  if (!activeLobby) {
+if (showCover) {
   return (
-    <div className="lobby-screen">
+    <div className="cover-screen" onClick={() => setShowCover(false)}>
+      <img
+        className="cover-image"
+        src={coverImage}
+        alt="Stratego — Battle for Glory"
+        draggable={false}
+      />
+      <div className="cover-banner">
+        <button
+          className="cover-play-btn"
+          onClick={(e) => { e.stopPropagation(); setShowCover(false); }}
+        >
+          ⚔ PLAY
+        </button>
+      </div>
+    </div>
+  );
+}
+
+if (!user) return <LoginPage />;
+
+if (!activeLobby) {
+  return (
+    <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
       {/* Profile icon button */}
       <button
         onClick={() => setShowProfile(true)}
@@ -183,23 +230,43 @@ export default function App() {
 
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
 
-      <h1>Stratego</h1>
       {lobbyError && <div className="error-toast">{lobbyError}</div>}
+
       <div className="setup-controls">
-        <input
-          value={lobbyInput}
-          onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
-          placeholder="Enter Lobby Code"
-        />
-        <div className="team-selector">
-          <button
-            className={`reg-btn red ${playerColor === "RED" ? "active" : ""}`}
-            onClick={() => { setPlayerColor("RED"); setLobbyError(null); }}
-          >Red Team</button>
-          <button
-            className={`reg-btn blue ${playerColor === "BLUE" ? "active" : ""}`}
-            onClick={() => { setPlayerColor("BLUE"); setLobbyError(null); }}
-          >Blue Team</button>
+        <div className="lobby-card">
+          <div className="lobby-card__header">
+            <div className="lobby-title">STRATEGO</div>
+          </div>
+
+          <div className="lobby-card__body">
+            <div className="lobby-input-group">
+              <div className="lobby-section-label">Join an existing game</div>
+              <input
+                value={lobbyInput}
+                onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
+                placeholder="Enter Lobby Code"
+              />
+            </div>
+
+            <button className="join-btn" onClick={() => { setPlayerColor("BLUE"); setActiveLobby(lobbyInput); }}>
+              ⚔ Join Game
+            </button>
+
+            <div className="lobby-divider">or</div>
+
+            <button
+              className="join-btn primary"
+              onClick={handleCreateGame}
+              disabled={isCreating}
+            >
+              {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
         </div>
         <button className="join-btn" onClick={() => {
           sessionStorage.setItem("activeLobby", lobbyInput);
@@ -208,6 +275,28 @@ export default function App() {
         }}>
           Join Game
         </button>
+      </div>
+    </div>
+  );
+}
+
+  if (isWaitingForOpponent) {
+  return (
+    <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
+      <div className="setup-controls">
+        <div className="lobby-card">
+          <div className="lobby-card__body">
+            <div className="waiting-container">
+              <h1>Lobby Created!</h1>
+              <p>Share this code with your opponent</p>
+              <div className="lobby-code-display">{activeLobby}</div>
+              <p className="waiting-subtext">Waiting for a second player to join</p>
+              <button className="join-btn red" onClick={() => setActiveLobby(null)}>
+                ✕ Cancel / Leave
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

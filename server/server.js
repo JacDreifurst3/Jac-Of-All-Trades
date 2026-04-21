@@ -67,15 +67,23 @@ io.on("connection", (socket) => {
             await gameService.assignPlayerUID(lobbyCode, playerColor, uid);
             socket.playerColor = playerColor;
             socket.lobbyCode = lobbyCode;
+          
+            const redJoined = !!game.players['RED'].socketId;
+            const blueJoined = !!game.players['BLUE'].socketId;
 
-            socket.emit("gameStateUpdate", game.getGameState(playerColor));
+            if (redJoined && blueJoined) {
+            game.gamePhase = 'SETUP';
+            } else {
+            game.gamePhase = 'WAITING';
+            }
+    
+            io.to(lobbyCode).emit("gameStateUpdate", game.getGameState(playerColor));
             console.log(`User joined room: ${lobbyCode}`);
         } catch (err) {
             console.error("joinGame error:", err);
             socket.emit("error", "Failed to join game");
         }
     });
-
     // Returns valid moves for a selected piece
     socket.on("selectPiece", async (data) => {
         const { lobbyCode, x, y } = data;
