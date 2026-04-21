@@ -48,7 +48,17 @@ socket.on("joinGame", ({ lobbyCode, playerColor }) => {
     game.assignPlayer(playerColor, socket.id);
     socket.playerColor = playerColor;
 
-    socket.emit("gameStateUpdate", game.getGameState(playerColor));
+    const redJoined = !!game.players['RED'].socketId;
+    const blueJoined = !!game.players['BLUE'].socketId;
+
+    if (redJoined && blueJoined) {
+        game.gamePhase = 'SETUP';
+    } else {
+        game.gamePhase = 'WAITING';
+    }
+    
+    io.to(lobbyCode).emit("gameStateUpdate", game.getGameState(playerColor));
+
     console.log(`User ${socket.id} joined ${lobbyCode} as ${playerColor}`);
 });
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import "./App.css";
 import { PieceIcon, LAKES, BOARD_SIZE } from "./components/Pieces.jsx";
 import { useGame } from "./hooks/useGame";
@@ -18,6 +19,7 @@ export default function App() {
   const [playerColor, setPlayerColor] = useState("RED");
   const [lobbyError, setLobbyError] = useState(null);
   const [battleLog, setBattleLog] = useState([]);
+  const [isCreating, setIsCreating] = useState(false);
 
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
     setActiveLobby(false);
@@ -29,6 +31,26 @@ export default function App() {
   const [selectedSetupSlot, setSelectedSetupSlot] = useState(null);
   const attackerColorRef = useRef(null);
 
+
+
+  const handleCreateGame = async () => {
+    setIsCreating(true);
+    setLobbyError(null);
+    try {
+      const response = await axios.post('http://localhost:5001/api/games/create');
+      
+      const { lobbyCode } = response.data;
+      
+      setActiveLobby(lobbyCode);
+    } catch (err) {
+      console.error("Failed to create game", err);
+      setLobbyError("Failed to connect to server.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
   useEffect(() => {
     if (error) {
       setMessages(prev => [{ id: Date.now(), text: error }, ...prev].slice(0, 20));
@@ -113,29 +135,50 @@ export default function App() {
       <div className="lobby-screen">
         <h1>Stratego</h1>
         {lobbyError && <div className="error-toast">{lobbyError}</div>}
+        
         <div className="setup-controls">
+
           <input
             value={lobbyInput}
             onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
             placeholder="Enter Lobby Code"
           />
-          <div className="team-selector">
-            <button
-              className={`reg-btn red ${playerColor === "RED" ? "active" : ""}`}
-              onClick={() => { setPlayerColor("RED"); setLobbyError(null); }}
-            >Red Team</button>
-            <button
-              className={`reg-btn blue ${playerColor === "BLUE" ? "active" : ""}`}
-              onClick={() => { setPlayerColor("BLUE"); setLobbyError(null); }}
-            >Blue Team</button>
-          </div>
-          <button className="join-btn" onClick={() => setActiveLobby(lobbyInput)}>
+          
+          <button className="join-btn" onClick={() => { setPlayerColor("BLUE") ; setActiveLobby(lobbyInput)}}>
             Join Game
           </button>
+
+          <button 
+            className="join-btn" 
+            onClick={handleCreateGame}
+            disabled={isCreating}
+          >
+            {isCreating ? "Creating..." : "Create New Lobby"}
+          </button>
+
         </div>
       </div>
     );
   }
+
+  if (isWaitingForOpponent) {
+  return (
+    <div className="lobby-screen">
+      <div className="setup-controls">
+        <div className="waiting-container">
+          <div className="setup-waiting__pulse" />
+          <h1>Lobby Created!</h1>
+          <p>Lobby Code::</p>
+          <div className="lobby-code-display">{activeLobby}</div>
+          <p className="waiting-subtext">Waiting for a second player to join</p>
+          <button className="join-btn red" onClick={() => setActiveLobby(null)}>
+            Cancel / Leave
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   const handleSquareClick = (space) => {
     if (gameOver) return;
