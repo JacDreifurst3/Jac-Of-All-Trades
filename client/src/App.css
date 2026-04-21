@@ -323,6 +323,20 @@ body {
   box-shadow: 0 4px 12px rgba(90, 0, 0, 0.6), inset 0 1px 0 rgba(255,210,100,0.1);
 }
 
+.lobby-back-btn {
+  background: transparent;
+  border: 1px solid rgba(139, 105, 20, 0.5);
+  border-radius: 4px;
+  color: #8b7040;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
 .status-info {
   display: flex;
   flex-direction: row;
@@ -1517,4 +1531,217 @@ body {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(200,160,60,0.55);
+}
+/* ── Profile button (lobby screen) ── */
+.profile-btn {
+  position: fixed;
+  top: 20px;
+  right: 28px;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-family: Cinzel, serif;
+  box-shadow: none;
+}
+
+.profile-btn__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(139,105,20,0.3);
+  font-size: 22px;
+  border: 2px solid #c9a84c;
+}
+
+.profile-btn__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-btn__username {
+  font-family: Rajdhani, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #c9a84c;
+  text-transform: uppercase;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.return-lobby-btn {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: rgba(245,221,129,0.15);
+  border: 2px solid #f5dd81;
+  border-radius: 6px;
+  color: #f5dd81;
+  font-family: Cinzel, serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.status-center-text {
+  text-align: center;
+}
+
+.status-messages--centered {
+  align-items: center;
+}
+.rules-btn {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 200;
+  background: linear-gradient(135deg, #7a2a00, #c0441a);
+  color: #f5e6c8;
+  border: 2px solid #e8b86d;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+  transition: background 0.2s, transform 0.15s;
+}
+.rules-btn:hover {
+  background: linear-gradient(135deg, #9a3800, #e05520);
+  transform: translateY(-1px);
+}
+
+.rules-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0,0,0,0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.rules-modal {
+  background: #1a0e05;
+  border: 2px solid #c08a3a;
+  border-radius: 12px;
+  width: min(680px, 95vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+  overflow: hidden;
+}
+
+.rules-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  background: linear-gradient(135deg, #3a1000, #6b2200);
+  border-bottom: 2px solid #c08a3a;
+  flex-shrink: 0;
+}
+
+.rules-modal__title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: #f5e6c8;
+  letter-spacing: 0.08em;
+}
+
+.rules-modal__close {
+  background: none;
+  border: none;
+  color: #e8b86d;
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.rules-modal__close:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.rules-modal__body {
+  overflow-y: auto;
+  padding: 22px 26px;
+  color: #d4c5a0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.97rem;
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: #c08a3a #1a0e05;
+}
+.rules-modal__body::-webkit-scrollbar { width: 7px; }
+.rules-modal__body::-webkit-scrollbar-track { background: #1a0e05; }
+.rules-modal__body::-webkit-scrollbar-thumb { background: #c08a3a; border-radius: 4px; }
+
+.rules-modal__body h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: #e8b86d;
+  border-bottom: 1px solid #3a2800;
+  padding-bottom: 4px;
+  margin-top: 6px;
+}
+
+.rules-modal__body ol,
+.rules-modal__body ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rules-modal__body p {
+  margin: 0;
+}
+
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.rules-table th {
+  background: #2e1800;
+  color: #e8b86d;
+  padding: 6px 10px;
+  text-align: left;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+}
+.rules-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #2e1800;
+}
+.rules-table tr:nth-child(even) td {
+  background: rgba(255,255,255,0.03);
+}
+
+.profile-btn--fixed {
+  position: fixed;
+  top: 16px;
+  right: 1px;
+  z-index: 300;
 }

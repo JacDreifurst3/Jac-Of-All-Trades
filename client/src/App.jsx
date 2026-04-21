@@ -30,6 +30,7 @@ export default function App() {
   );
   const [lobbyError, setLobbyError] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -167,70 +168,33 @@ if (showCover) {
 
 if (!user) return <LoginPage />;
 
-if (!activeLobby) {
-  return (
-    <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
-      {/* Profile icon button */}
-      <button
-        onClick={() => setShowProfile(true)}
-        style={{
-          position: "fixed",
-          top: "20px",
-          right: "28px",
-          background: "rgba(139,105,20,0.2)",
-          border: "2px solid #8b6914",
-          padding: "8px 12px",
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "5px",
-          fontFamily: "Cinzel, serif",
-          boxShadow: "0 0 12px rgba(139,105,20,0.3)",
-        }}
-      >
-        <div style={{
-          width: "52px",
-          height: "52px",
-          borderRadius: "50%",
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(139,105,20,0.3)",
-          fontSize: "22px",
-          border: "2px solid #c9a84c",
-        }}>
+  // Always-visible profile button
+  const profileCorner = (
+    <>
+      <button onClick={() => setShowProfile(true)} className="profile-btn profile-btn--fixed">
+        <div className="profile-btn__avatar">
           {profile?.profilePicUrl ? (
-            <img
-              src={profile.profilePicUrl}
-              alt="avatar"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              onError={e => { e.target.style.display = "none"; }}
-            />
+            <img src={profile.profilePicUrl} alt="avatar" className="profile-btn__avatar-img" onError={e => { e.target.style.display = "none"; }} />
           ) : (
             (profile?.username || "?")[0].toUpperCase()
           )}
         </div>
-        <span style={{
-          fontFamily: "Rajdhani, sans-serif",
-          fontSize: "12px",
-          fontWeight: "700",
-          letterSpacing: "0.1em",
-          color: "#c9a84c",
-          textTransform: "uppercase",
-          maxWidth: "70px",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}>
-          {profile?.username || "Profile"}
-        </span>
+        <span className="profile-btn__username">{profile?.username || "Profile"}</span>
+      </button>
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+    </>
+  );
+
+if (!activeLobby) {
+  return (
+    <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
+      {profileCorner}
+
+      <button className="rules-btn" onClick={() => setShowRules(true)}>
+        📜 Rules
       </button>
 
-      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
-
-      {lobbyError && <div className="error-toast">{lobbyError}</div>}
+      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
 
       <div className="setup-controls">
         <div className="lobby-card">
@@ -272,6 +236,7 @@ if (!activeLobby) {
   if (isWaitingForOpponent) {
   return (
     <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
+      {profileCorner}
       <div className="setup-controls">
         <div className="lobby-card">
           <div className="lobby-card__body">
@@ -348,6 +313,7 @@ if (!activeLobby) {
 
   return (
 <div className="game-layout">
+  {profileCorner}
   {gamePhase === "SETUP" ? (
     <SetupSidebar
       availablePieces={availablePieces}
@@ -385,19 +351,7 @@ if (!activeLobby) {
                 sessionStorage.removeItem("playerColor");
                 setActiveLobby(null);
               }}
-              style={{
-                marginTop: "20px",
-                padding: "12px 24px",
-                background: "rgba(245,221,129,0.15)",
-                border: "2px solid #f5dd81",
-                borderRadius: "6px",
-                color: "#f5dd81",
-                fontFamily: "Cinzel, serif",
-                fontSize: "14px",
-                fontWeight: "700",
-                letterSpacing: "0.1em",
-                cursor: "pointer",
-              }}
+              className="return-lobby-btn"
             >
               Return to Lobby
             </button>
@@ -408,37 +362,25 @@ if (!activeLobby) {
     <div className="status-bar">
       <div className="status-info">
         <button
+          className="lobby-back-btn"
           onClick={() => {
             sessionStorage.removeItem("activeLobby");
             sessionStorage.removeItem("playerColor");
             setActiveLobby(null);
           }}
-          style={{
-            background: "transparent",
-            border: "1px solid rgba(139,105,20,0.5)",
-            borderRadius: "4px",
-            color: "#8b7040",
-            fontFamily: "Rajdhani, sans-serif",
-            fontSize: "12px",
-            fontWeight: "700",
-            letterSpacing: "0.1em",
-            padding: "4px 10px",
-            cursor: "pointer",
-            textTransform: "uppercase",
-          }}
         >
           ⌂ Lobby
         </button>
-        <span style={{ textAlign: "center" }}>
+        <span className="status-center-text">
           Lobby: <strong>{activeLobby}</strong>
         </span>
         {gamePhase === "SETUP" && (
-          <span style={{ textAlign: "center" }}>
+          <span className="status-center-text">
             <strong>Setup Phase</strong>
           </span>
         )}
         {gamePhase === "PLAY" && (
-          <span style={{ textAlign: "center" }}>
+          <span className="status-center-text">
             Turn: <strong className={turn.toLowerCase()}>{turn}</strong>
           </span>
         )}
@@ -449,7 +391,7 @@ if (!activeLobby) {
           Waiting for opponent…
         </div>
       )}
-      <div className="status-messages" style={{ alignItems: "center" }}>
+      <div className="status-messages status-messages--centered">
         {messages.length === 0 ? (
           <span className="status-msg-empty"></span>
         ) : (
@@ -638,6 +580,91 @@ function SetupInfoSidebar({ playerColor, selectedRank, selectedSetupSlot, setupC
             <span className="setup-tip-text">{PIECE_TIPS[r]}</span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function RulesModal({ onClose }) {
+  return (
+    <div className="rules-overlay" onClick={onClose}>
+      <div className="rules-modal" onClick={e => e.stopPropagation()}>
+        <div className="rules-modal__header">
+          <h2 className="rules-modal__title">📜 STRATEGO — Rules</h2>
+          <button className="rules-modal__close" onClick={onClose}>✕</button>
+        </div>
+        <div className="rules-modal__body">
+
+          <h3>Object of the Game</h3>
+          <p>Capture your opponent's Flag.</p>
+
+          <h3>To Start the Game</h3>
+          <ol>
+            <li>Place the board between players so STRATEGO faces each contestant.</li>
+            <li>One player takes Red pieces, the other Blue. Red starts first.</li>
+            <li>Each player gets an army of 40 pieces: 1 Marshal, 1 General, 2 Colonels, 3 Majors, 4 Captains, 4 Lieutenants, 4 Sergeants, 5 Miners, 8 Scouts, 1 Spy, 6 Bombs, and 1 Flag.</li>
+            <li>Fill your half of the board — 10 per row, 4 rows deep. The two middle rows start empty.</li>
+            <li>Pieces face you so the opponent cannot see their rank.</li>
+          </ol>
+
+          <h3>Piece Rankings (High → Low)</h3>
+          <table className="rules-table">
+            <thead><tr><th>Rank</th><th>Piece</th><th>Count</th></tr></thead>
+            <tbody>
+              {[
+                [10,"Marshal",1],[9,"General",1],[8,"Colonel",2],[7,"Major",3],
+                [6,"Captain",4],[5,"Lieutenant",4],[4,"Sergeant",4],[3,"Miner",5],
+                [2,"Scout",8],["S","Spy",1],["B","Bomb",6],["F","Flag",1],
+              ].map(([rank, name, count]) => (
+                <tr key={rank}><td>{rank}</td><td>{name}</td><td>×{count}</td></tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h3>Movement Rules</h3>
+          <ol>
+            <li>Turns alternate — Red first, then Blue.</li>
+            <li>Pieces move one square at a time: forward, backward, or sideways — <strong>not diagonally</strong>.</li>
+            <li>Two lakes in the center have no squares — pieces must move around them.</li>
+            <li>Two pieces cannot occupy the same square.</li>
+            <li>A piece cannot move through or jump over another piece.</li>
+            <li>Only one piece may be moved per turn.</li>
+            <li>The Flag and Bombs <strong>cannot be moved</strong> once placed.</li>
+            <li>The <strong>Scout</strong> may move any number of open squares in a straight line, but may not move and strike in the same turn.</li>
+            <li>Once a piece is moved and the hand removed, it cannot be moved back that turn.</li>
+            <li>Pieces cannot be moved back and forth between the same 2 squares in 3 consecutive turns.</li>
+            <li>A player <strong>must</strong> either move or strike on their turn.</li>
+          </ol>
+
+          <h3>Strike / Attack Rules</h3>
+          <ol>
+            <li>When opposing pieces occupy adjoining squares (not diagonal), either player may strike on their turn.</li>
+            <li>A player may move <em>or</em> strike — not both in the same turn.</li>
+            <li>The attacker declares their rank; the defender answers with theirs.</li>
+            <li>The <strong>lower-ranked piece is removed</strong>. The winner moves into the empty square.</li>
+            <li>Equal ranks: <strong>both pieces are removed</strong>.</li>
+            <li>The <strong>Spy</strong> can only defeat the Marshal — and only if the Spy strikes first. If the Marshal strikes first, the Spy is removed.</li>
+            <li>Any piece (except a Miner) that strikes a <strong>Bomb</strong> is lost. The Bomb stays. A Miner defuses a Bomb and moves into its square.</li>
+            <li>Bombs and the Flag can never strike — they must be struck.</li>
+          </ol>
+
+          <h3>Ending the Game</h3>
+          <p>The game ends when a player captures the opponent's Flag. If a player cannot move or strike, they declare their opponent the winner.</p>
+
+          <h3>Strategy Tips</h3>
+          <ul>
+            <li>Surround your Flag with Bombs, but place some Bombs away from the Flag to mislead your opponent.</li>
+            <li>Keep a few high-ranking pieces in your front lines — but don't lose them quickly.</li>
+            <li>Scouts are great for probing enemy positions early.</li>
+            <li>Save your Miners for the end game to defuse hidden Bombs near the Flag.</li>
+          </ul>
+
+          <h3>Optional Tournament Rules</h3>
+          <p><strong>Aggressor Advantage:</strong> When pieces of equal rank battle, the attacking piece wins.</p>
+          <p><strong>Silent Defense:</strong> Only the attacker declares rank. The defender silently resolves the outcome. Exception: a Scout attacker requires the defender to reveal their rank.</p>
+          <p><strong>Rescue:</strong> When you move onto a square in your opponent's back row, you may rescue one captured piece and place it on any open square in your half. Scouts cannot make a rescue, Bombs cannot be rescued, each player can make only two rescues, and the same piece cannot make both rescues.</p>
+
+        </div>
       </div>
     </div>
   );
