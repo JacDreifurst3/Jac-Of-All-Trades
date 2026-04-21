@@ -8,7 +8,7 @@ class Game {
     this.board = new Board();
     this.currentPlayer = "RED";
     this.moveHistory = [];
-    this.gamePhase = "SETUP";
+    this.gamePhase = "WAITING";
     this.gameOver = false;
     this.winner = null;
     this.winReason = null;
@@ -204,8 +204,23 @@ class Game {
 
   //function to get gamestate for frontend.
   getGameState(forPlayerColor) {
+  // During waiting phase, just return the phase — no board data needed yet
+  if (this.gamePhase === 'WAITING') {
+    return {
+      board: [],
+      currentPlayer: this.currentPlayer,
+      gameOver: this.gameOver,
+      winner: this.winner,
+      winReason: this.winReason,
+      gamePhase: this.gamePhase,
+      availablePieces: {},
+      setupComplete: false,
+      showConfirmation: false,
+      setupLayout: []
+    };
+  }
+
   const fullBoard = this.board.serialize();
-  // Hide enemy ranks that aren't revealed
   const redactedBoard = fullBoard.map(row => 
     row.map(space => {
       if (
@@ -217,7 +232,7 @@ class Game {
           ...space,
           piece: { 
             ...space.piece, 
-            rank: "HIDDEN", // Overwrite the rank for the enemy
+            rank: "HIDDEN",
             name: "Enemy Piece" 
           }
         };

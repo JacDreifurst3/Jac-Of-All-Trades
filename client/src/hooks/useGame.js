@@ -24,7 +24,7 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   const [availableMoves, setAvailableMoves] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [lastBattle, setLastBattle] = useState(null);
-  const [gamePhase, setGamePhase] = useState('SETUP');
+  const [gamePhase, setGamePhase] = useState('WAITING');
   const [availablePieces, setAvailablePieces] = useState({});
   const [setupComplete, setSetupComplete] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -40,7 +40,7 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     socket.emit("joinGame", { lobbyCode, playerColor, uid: user?.uid });
 
     socket.on("gameStateUpdate", (state) => {
-      setBoard(state.board.flat());
+      setBoard(state.board ? state.board.flat() : []);
       setTurn(state.currentPlayer);
       setGamePhase(state.gamePhase);
       setAvailablePieces(state.availablePieces);

@@ -53,9 +53,10 @@ export default function App() {
     setLobbyError(null);
     try {
       const response = await axios.post('http://localhost:5001/api/games/create');
-      
       const { lobbyCode } = response.data;
-      
+      sessionStorage.setItem("activeLobby", lobbyCode);
+      sessionStorage.setItem("playerColor", "RED");
+      setPlayerColor("RED");
       setActiveLobby(lobbyCode);
     } catch (err) {
       console.error("Failed to create game", err);
@@ -212,7 +213,12 @@ if (!activeLobby) {
               />
             </div>
 
-            <button className="join-btn" onClick={() => { setPlayerColor("BLUE"); setActiveLobby(lobbyInput); }}>
+            <button className="join-btn" onClick={() => {
+              sessionStorage.setItem("activeLobby", lobbyInput);
+              sessionStorage.setItem("playerColor", "BLUE");
+              setPlayerColor("BLUE");
+              setActiveLobby(lobbyInput); 
+            }}>
               ⚔ Join Game
             </button>
 

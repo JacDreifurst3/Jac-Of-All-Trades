@@ -72,12 +72,23 @@ io.on("connection", (socket) => {
             const blueJoined = !!game.players['BLUE'].socketId;
 
             if (redJoined && blueJoined) {
-            game.gamePhase = 'SETUP';
+                // Only transition to SETUP if game hasn't already started
+                if (game.gamePhase === 'WAITING') {
+                    game.gamePhase = 'SETUP';
+                }
+                // Send correct state to each player separately
+                const redId = game.players['RED'].socketId;
+                const blueId = game.players['BLUE'].socketId;
+                if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+                if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
             } else {
-            game.gamePhase = 'WAITING';
+                // Only set to WAITING if game hasn't progressed past that
+                if (game.gamePhase !== 'SETUP' && game.gamePhase !== 'PLAY') {
+                    game.gamePhase = 'WAITING';
+                }
+                socket.emit("gameStateUpdate", game.getGameState(playerColor));
             }
-    
-            io.to(lobbyCode).emit("gameStateUpdate", game.getGameState(playerColor));
+
             console.log(`User joined room: ${lobbyCode}`);
         } catch (err) {
             console.error("joinGame error:", err);
