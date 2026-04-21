@@ -267,18 +267,7 @@ if (!activeLobby) {
     </div>
   );
 }
-        </div>
-        <button className="join-btn" onClick={() => {
-          sessionStorage.setItem("activeLobby", lobbyInput);
-          sessionStorage.setItem("playerColor", playerColor);
-          setActiveLobby(lobbyInput);
-        }}>
-          Join Game
-        </button>
-      </div>
-    </div>
-  );
-}
+        
 
   if (isWaitingForOpponent) {
   return (
