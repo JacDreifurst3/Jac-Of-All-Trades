@@ -730,12 +730,6 @@ function RulesModal({ onClose }) {
             <li>Scouts are great for probing enemy positions early.</li>
             <li>Save your Miners for the end game to defuse hidden Bombs near the Flag.</li>
           </ul>
-
-          <h3>Optional Tournament Rules</h3>
-          <p><strong>Aggressor Advantage:</strong> When pieces of equal rank battle, the attacking piece wins.</p>
-          <p><strong>Silent Defense:</strong> Only the attacker declares rank. The defender silently resolves the outcome. Exception: a Scout attacker requires the defender to reveal their rank.</p>
-          <p><strong>Rescue:</strong> When you move onto a square in your opponent's back row, you may rescue one captured piece and place it on any open square in your half. Scouts cannot make a rescue, Bombs cannot be rescued, each player can make only two rescues, and the same piece cannot make both rescues.</p>
-
         </div>
       </div>
     </div>
