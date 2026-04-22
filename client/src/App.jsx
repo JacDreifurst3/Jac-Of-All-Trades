@@ -702,7 +702,7 @@ function RulesModal({ onClose }) {
             <li>A piece cannot move through or jump over another piece.</li>
             <li>Only one piece may be moved per turn.</li>
             <li>The Flag and Bombs <strong>cannot be moved</strong> once placed.</li>
-            <li>The <strong>Scout</strong> may move any number of open squares in a straight line, but may not move and strike in the same turn.</li>
+            <li>The <strong>Scout</strong> may move any number of open squares in a straight line.</li>
             <li>Once a piece is moved and the hand removed, it cannot be moved back that turn.</li>
             <li>Pieces cannot be moved back and forth between the same 2 squares in 3 consecutive turns.</li>
             <li>A player <strong>must</strong> either move or strike on their turn.</li>
