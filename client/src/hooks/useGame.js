@@ -32,6 +32,7 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const [winReason, setWinReason] = useState(null);
+  const [battleLog, setBattleLog] = useState([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
       setGameOver(state.gameOver || false);
       setWinner(state.winner);
       setWinReason(state.winReason);
+      setBattleLog(state.battleLog || []);
       setAvailableMoves([]);
       setSelectedPiece(null);
     });
@@ -111,5 +113,5 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     setSelectedPiece(null);
   };
 
-  return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason };
+  return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog };
 }

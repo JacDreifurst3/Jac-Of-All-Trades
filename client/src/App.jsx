@@ -31,7 +31,6 @@ export default function App() {
   const [lobbyError, setLobbyError] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [battleLog, setBattleLog] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
   // On page load, if there's a saved lobby, verify which color this user should be
   useEffect(() => {
@@ -61,7 +60,7 @@ export default function App() {
     verifyColor();
 }, [user]);
 
-  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog } = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
     setActiveLobby(null);
@@ -152,20 +151,6 @@ export default function App() {
 
   if (msg) setMessages([{ id: Date.now(), text: msg }]);
 
-  const newEntry = {
-    id: Date.now(),
-    result,
-    attackerRank,
-    defenderRank,
-    atkLabel: rankLabel(attackerRank),
-    defLabel: rankLabel(defenderRank),
-    atkName,
-    defName,
-    atkColor,
-    defColor,
-  };
-
-  setBattleLog(prev => [newEntry, ...prev]);
   setLastBattle(null);
 }, [lastBattle, turn]);
 
@@ -173,8 +158,23 @@ export default function App() {
     const pieces = [];
     const atkDead = e.result === "DEFENDER_WINS" || e.result === "BOTH_DIE";
     const defDead = e.result === "ATTACKER_WINS" || e.result === "BOTH_DIE" || e.result === "FLAG_CAPTURED";
-    if (atkDead) pieces.push({ id: e.id + "-a", label: e.atkLabel, name: e.atkName, color: e.atkColor });
-    if (defDead) pieces.push({ id: e.id + "-d", label: e.defLabel, name: e.defName, color: e.defColor });
+    
+    if (atkDead) {
+      pieces.push({ 
+        id: e.timestamp + "-a", 
+        label: rankLabel(e.attackerRank), 
+        name: rankName(e.attackerRank), 
+        color: e.attackerColor 
+      });
+    }
+    if (defDead) {
+      pieces.push({ 
+        id: e.timestamp + "-d", 
+        label: rankLabel(e.defenderRank), 
+        name: rankName(e.defenderRank), 
+        color: e.defenderColor 
+      });
+    }
     return pieces;
   });
 
