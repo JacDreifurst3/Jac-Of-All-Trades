@@ -415,7 +415,7 @@ if (!activeLobby) {
           <p>
             {winReason === "flag_captured" 
               ? "The flag has been captured!" 
-              : "The opponent has no pieces left!"}
+              : "The opponent has no available moves!"}
           </p>
             <button
               onClick={() => {
@@ -721,7 +721,11 @@ function RulesModal({ onClose }) {
           </ol>
 
           <h3>Ending the Game</h3>
-          <p>The game ends when a player captures the opponent's Flag. If a player cannot move or strike, they declare their opponent the winner.</p>
+          <p>The game ends when:</p>
+          <ul>
+            <li>A player captures the opponent's Flag, OR</li>
+            <li>A player has no pieces that can move (all movable pieces are trapped or eliminated)</li>
+          </ul>
 
           <h3>Strategy Tips</h3>
           <ul>

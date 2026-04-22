@@ -96,11 +96,11 @@ class Game {
 
     if (defender) {
       result = this.resolveBattle(attacker, defender, fromSpace, toSpace);
-      // Check if defender's player has any pieces left (only if game hasn't already ended)
-      if (!this.gameOver && !this.hasPiecesLeft(defender.getOwner())) {
+      // Check if defender's player has any available moves left (only if game hasn't already ended)
+      if (!this.gameOver && !this.hasAvailableMoves(defender.getOwner())) {
         this.gameOver = true;
         this.winner = this.currentPlayer;
-        this.winReason = "no_pieces_left";
+        this.winReason = "no_available_moves";
       }
     } else {
       this.board.executeMove(fromSpace, toSpace);
@@ -118,6 +118,13 @@ class Game {
     this.moveHistory.push(move);
 
     this.switchTurn();
+
+    // After switching turns, check if the new current player has any available moves
+    if (!this.gameOver && !this.hasAvailableMoves(this.currentPlayer)) {
+      this.gameOver = true;
+      this.winner = this.currentPlayer === "RED" ? "BLUE" : "RED";
+      this.winReason = "no_available_moves";
+    }
 
     return result;
   }
@@ -174,6 +181,26 @@ class Game {
         const space = this.board.getSpace(x, y);
         if (space.piece && space.piece.getOwner() === playerColor) {
           return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Checks if a player has any pieces that can move to a valid location
+  hasAvailableMoves(playerColor) {
+    for (let x = 0; x < this.board.size; x++) {
+      for (let y = 0; y < this.board.size; y++) {
+        const space = this.board.getSpace(x, y);
+        if (space.piece && space.piece.getOwner() === playerColor) {
+          // Check if this piece can move
+          if (space.piece.canMove()) {
+            // Get available moves for this piece
+            const availableMoves = this.board.getAvailableMoves(space);
+            if (availableMoves.length > 0) {
+              return true;
+            }
+          }
         }
       }
     }

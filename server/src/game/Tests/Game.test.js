@@ -221,7 +221,7 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     }).toEqual({
       gameOver: true,
       winner: "RED",
-      winReason: "no_pieces_left",
+      winReason: "no_available_moves",
     });
   });
 
@@ -346,6 +346,48 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     game.randomizePlayerLayout("RED");
     const state = game.getGameState("RED");
     expect(state.showConfirmation).toBe(true);
+  });
+
+  test("hasAvailableMoves returns false when player has only immovable pieces", () => {
+    // RED has only bombs (immovable pieces)
+    game.board.getSpace(0, 0).placePiece(new Piece(11, "RED"));
+    game.board.getSpace(0, 1).placePiece(new Piece(11, "RED"));
+    game.board.getSpace(0, 2).placePiece(new Piece(0, "RED")); // Flag
+    
+    expect(game.hasAvailableMoves("RED")).toBe(false);
+  });
+
+  test("hasAvailableMoves returns true when player has movable pieces", () => {
+    // RED has a Scout (movable piece)
+    game.board.getSpace(0, 0).placePiece(new Piece(2, "RED"));
+    
+    expect(game.hasAvailableMoves("RED")).toBe(true);
+  });
+
+  test("no available moves results in opponent winning", () => {
+    // RED has only a bomb and flag (immovable)
+    game.board.getSpace(0, 0).placePiece(new Piece(11, "RED")); // Bomb
+    game.board.getSpace(0, 1).placePiece(new Piece(0, "RED")); // Flag
+    
+    // BLUE has a scout (movable)
+    game.board.getSpace(1, 0).placePiece(new Piece(2, "BLUE"));
+    
+    // Switch to BLUE's turn
+    game.switchTurn(); // currentPlayer = BLUE
+    
+    // BLUE makes a move
+    game.makeMove(1, 0, 1, 1);
+    
+    // Turn switches back to RED, but RED has no available moves (only immovable pieces)
+    expect({
+      gameOver: game.gameOver,
+      winner: game.winner,
+      winReason: game.winReason,
+    }).toEqual({
+      gameOver: true,
+      winner: "BLUE",
+      winReason: "no_available_moves",
+    });
   });
 
   test("moveSetupPiece moves a piece within the setup layout", () => {
