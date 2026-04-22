@@ -93,6 +93,38 @@ export default function App() {
     }
   };
 
+  const handleJoinLobby = async () => {
+    setLobbyError(null);
+    if (!lobbyInput.trim()) {
+      setLobbyError("Please enter a lobby code");
+      return;
+    }
+
+    try {
+      const token = await user.getIdToken();
+      const res = await axios.get(`http://localhost:5001/api/games/${lobbyInput}/player-color`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const color = res.data.color;
+      if (!color) {
+        // Player hasn't joined this lobby yet, default to BLUE
+        sessionStorage.setItem("activeLobby", lobbyInput);
+        sessionStorage.setItem("playerColor", "BLUE");
+        setPlayerColor("BLUE");
+      } else {
+        // Player is rejoining as their original color
+        sessionStorage.setItem("activeLobby", lobbyInput);
+        sessionStorage.setItem("playerColor", color);
+        setPlayerColor(color);
+      }
+      setActiveLobby(lobbyInput);
+    } catch (err) {
+      console.error("Failed to join lobby", err);
+      setLobbyError("Lobby not found or failed to connect");
+    }
+  };
+
   const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
   useEffect(() => {
     if (error) {
@@ -240,12 +272,7 @@ if (!activeLobby) {
               />
             </div>
 
-            <button className="join-btn" onClick={() => {
-              sessionStorage.setItem("activeLobby", lobbyInput);
-              sessionStorage.setItem("playerColor", "BLUE");
-              setPlayerColor("BLUE");
-              setActiveLobby(lobbyInput); 
-            }}>
+            <button className="join-btn" onClick={handleJoinLobby}>
               ⚔ Join Game
             </button>
 
