@@ -351,7 +351,7 @@ if (!activeLobby) {
   return (
 <div className="game-layout">
   {profileCorner}
-  {gamePhase === "SETUP" && (
+  {(gamePhase === "SETUP" || gamePhase === "PLAY") && (
     <>
       <button className="rules-btn" onClick={() => setShowRules(true)}>
         📜 Rules
