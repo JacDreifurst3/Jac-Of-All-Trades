@@ -33,6 +33,33 @@ export default function App() {
   const [showRules, setShowRules] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
+  // On page load, if there's a saved lobby, verify which color this user should be
+  useEffect(() => {
+    const savedLobby = sessionStorage.getItem("activeLobby");
+    if (!savedLobby || !user) return;
+
+    const verifyColor = async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await axios.get(`http://localhost:5001/api/games/${savedLobby}/player-color`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.color) {
+          sessionStorage.setItem("playerColor", res.data.color);
+          setPlayerColor(res.data.color);
+        }
+        // Only set the lobby AFTER we know the correct color
+        setActiveLobby(savedLobby);
+      } catch (err) {
+        console.log("Could not verify color, using saved value");
+        setActiveLobby(savedLobby);
+      }
+    };
+
+    // Clear activeLobby temporarily so useGame doesn't fire too early
+    setActiveLobby(null);
+    verifyColor();
+}, [user]);
 
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
