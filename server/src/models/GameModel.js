@@ -15,6 +15,16 @@ const spaceSchema = new mongoose.Schema({
     piece: { type: pieceSchema, default: null }   // The piece on this space, or null if empty
 }, { _id: false });
 
+// Represents a single battle in the battle log
+const battleEntrySchema = new mongoose.Schema({
+    result: { type: String },                     // "ATTACKER_WINS", "DEFENDER_WINS", "BOTH_DIE", "FLAG_CAPTURED", etc.
+    attackerRank: { type: Number },               // Rank of attacking piece
+    defenderRank: { type: Number },               // Rank of defending piece
+    attackerColor: { type: String },              // "RED" or "BLUE"
+    defenderColor: { type: String },              // "RED" or "BLUE"
+    timestamp: { type: Date, default: Date.now }  // When the battle occurred
+}, { _id: false });
+
 // The main game document — one per active or finished lobby
 const gameSchema = new mongoose.Schema({
     lobbyCode: { type: String, required: true, unique: true }, // The code players use to join
@@ -32,7 +42,7 @@ const gameSchema = new mongoose.Schema({
     currentPlayer: { type: String, default: 'RED' },       // Whose turn it is
     gamePhase: { type: String, default: 'SETUP' },          // "SETUP" or "PLAY"
     gameOver: { type: Boolean, default: false },
-    winReason: { type: String, default: null },             // "flag_captured" or "no_pieces_left"
+    winReason: { type: String, default: null },             // "flag_captured" or "no_available_moves"
 
     // Full board snapshot — array of rows, each row is an array of spaces
     board: { type: [[spaceSchema]], default: null },
@@ -41,6 +51,9 @@ const gameSchema = new mongoose.Schema({
     // Needed to restore setup phase if a player disconnects before game starts
     redLayout: { type: [[mongoose.Schema.Types.Mixed]], default: null },
     blueLayout: { type: [[mongoose.Schema.Types.Mixed]], default: null },
+
+    // Battle log — all battles that have occurred in this game
+    battleLog: { type: [battleEntrySchema], default: [] },
 
 }, { timestamps: true }); // Automatically adds createdAt and updatedAt fields
 

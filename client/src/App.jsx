@@ -31,7 +31,6 @@ export default function App() {
   const [lobbyError, setLobbyError] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [battleLog, setBattleLog] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
   // On page load, if there's a saved lobby, verify which color this user should be
   useEffect(() => {
@@ -61,7 +60,7 @@ export default function App() {
     verifyColor();
 }, [user]);
 
-  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog } = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
     setActiveLobby(null);
@@ -93,6 +92,38 @@ export default function App() {
     }
   };
 
+  const handleJoinLobby = async () => {
+    setLobbyError(null);
+    if (!lobbyInput.trim()) {
+      setLobbyError("Please enter a lobby code");
+      return;
+    }
+
+    try {
+      const token = await user.getIdToken();
+      const res = await axios.get(`http://localhost:5001/api/games/${lobbyInput}/player-color`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const color = res.data.color;
+      if (!color) {
+        // Player hasn't joined this lobby yet, default to BLUE
+        sessionStorage.setItem("activeLobby", lobbyInput);
+        sessionStorage.setItem("playerColor", "BLUE");
+        setPlayerColor("BLUE");
+      } else {
+        // Player is rejoining as their original color
+        sessionStorage.setItem("activeLobby", lobbyInput);
+        sessionStorage.setItem("playerColor", color);
+        setPlayerColor(color);
+      }
+      setActiveLobby(lobbyInput);
+    } catch (err) {
+      console.error("Failed to join lobby", err);
+      setLobbyError("Lobby not found or failed to connect");
+    }
+  };
+
   const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
   useEffect(() => {
     if (error) {
@@ -120,20 +151,6 @@ export default function App() {
 
   if (msg) setMessages([{ id: Date.now(), text: msg }]);
 
-  const newEntry = {
-    id: Date.now(),
-    result,
-    attackerRank,
-    defenderRank,
-    atkLabel: rankLabel(attackerRank),
-    defLabel: rankLabel(defenderRank),
-    atkName,
-    defName,
-    atkColor,
-    defColor,
-  };
-
-  setBattleLog(prev => [newEntry, ...prev]);
   setLastBattle(null);
 }, [lastBattle, turn]);
 
@@ -141,8 +158,23 @@ export default function App() {
     const pieces = [];
     const atkDead = e.result === "DEFENDER_WINS" || e.result === "BOTH_DIE";
     const defDead = e.result === "ATTACKER_WINS" || e.result === "BOTH_DIE" || e.result === "FLAG_CAPTURED";
-    if (atkDead) pieces.push({ id: e.id + "-a", label: e.atkLabel, name: e.atkName, color: e.atkColor });
-    if (defDead) pieces.push({ id: e.id + "-d", label: e.defLabel, name: e.defName, color: e.defColor });
+    
+    if (atkDead) {
+      pieces.push({ 
+        id: e.timestamp + "-a", 
+        label: rankLabel(e.attackerRank), 
+        name: rankName(e.attackerRank), 
+        color: e.attackerColor 
+      });
+    }
+    if (defDead) {
+      pieces.push({ 
+        id: e.timestamp + "-d", 
+        label: rankLabel(e.defenderRank), 
+        name: rankName(e.defenderRank), 
+        color: e.defenderColor 
+      });
+    }
     return pieces;
   });
 
@@ -240,12 +272,7 @@ if (!activeLobby) {
               />
             </div>
 
-            <button className="join-btn" onClick={() => {
-              sessionStorage.setItem("activeLobby", lobbyInput);
-              sessionStorage.setItem("playerColor", "BLUE");
-              setPlayerColor("BLUE");
-              setActiveLobby(lobbyInput); 
-            }}>
+            <button className="join-btn" onClick={handleJoinLobby}>
               ⚔ Join Game
             </button>
 
@@ -388,7 +415,7 @@ if (!activeLobby) {
           <p>
             {winReason === "flag_captured" 
               ? "The flag has been captured!" 
-              : "The opponent has no pieces left!"}
+              : "The opponent has no available moves!"}
           </p>
             <button
               onClick={() => {
@@ -694,7 +721,11 @@ function RulesModal({ onClose }) {
           </ol>
 
           <h3>Ending the Game</h3>
-          <p>The game ends when a player captures the opponent's Flag. If a player cannot move or strike, they declare their opponent the winner.</p>
+          <p>The game ends when:</p>
+          <ul>
+            <li>A player captures the opponent's Flag, OR</li>
+            <li>A player has no pieces that can move (all movable pieces are trapped or eliminated)</li>
+          </ul>
 
           <h3>Strategy Tips</h3>
           <ul>
@@ -703,12 +734,6 @@ function RulesModal({ onClose }) {
             <li>Scouts are great for probing enemy positions early.</li>
             <li>Save your Miners for the end game to defuse hidden Bombs near the Flag.</li>
           </ul>
-
-          <h3>Optional Tournament Rules</h3>
-          <p><strong>Aggressor Advantage:</strong> When pieces of equal rank battle, the attacking piece wins.</p>
-          <p><strong>Silent Defense:</strong> Only the attacker declares rank. The defender silently resolves the outcome. Exception: a Scout attacker requires the defender to reveal their rank.</p>
-          <p><strong>Rescue:</strong> When you move onto a square in your opponent's back row, you may rescue one captured piece and place it on any open square in your half. Scouts cannot make a rescue, Bombs cannot be rescued, each player can make only two rescues, and the same piece cannot make both rescues.</p>
-
         </div>
       </div>
     </div>

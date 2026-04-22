@@ -8,6 +8,7 @@ class Game {
     this.board = new Board();
     this.currentPlayer = "RED";
     this.moveHistory = [];
+    this.battleLog = [];
     this.gamePhase = "WAITING";
     this.gameOver = false;
     this.winner = null;
@@ -96,11 +97,11 @@ class Game {
 
     if (defender) {
       result = this.resolveBattle(attacker, defender, fromSpace, toSpace);
-      // Check if defender's player has any pieces left (only if game hasn't already ended)
-      if (!this.gameOver && !this.hasPiecesLeft(defender.getOwner())) {
+      // Check if defender's player has any available moves left (only if game hasn't already ended)
+      if (!this.gameOver && !this.hasAvailableMoves(defender.getOwner())) {
         this.gameOver = true;
         this.winner = this.currentPlayer;
-        this.winReason = "no_pieces_left";
+        this.winReason = "no_available_moves";
       }
     } else {
       this.board.executeMove(fromSpace, toSpace);
@@ -119,6 +120,13 @@ class Game {
 
     this.switchTurn();
 
+    // After switching turns, check if the new current player has any available moves
+    if (!this.gameOver && !this.hasAvailableMoves(this.currentPlayer)) {
+      this.gameOver = true;
+      this.winner = this.currentPlayer === "RED" ? "BLUE" : "RED";
+      this.winReason = "no_available_moves";
+    }
+
     return result;
   }
 
@@ -126,10 +134,14 @@ class Game {
     attacker.reveal();
     defender.reveal();
     
+    const attackerColor = this.currentPlayer;
+    const defenderColor = attackerColor === "RED" ? "BLUE" : "RED";
+    
     // Flag
     if (defender.getRank() === 0) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
+      this.recordBattle("FLAG_CAPTURED", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
       this.gameOver = true;
       this.winner = this.currentPlayer;
       this.winReason = "flag_captured";
@@ -140,26 +152,31 @@ class Game {
       // Miner (rank 3) defuses bomb
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
+      this.recordBattle("ATTACKER_DEFUSED_BOMB", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
       return "ATTACKER_DEFUSED_BOMB";
     }
 
     if (attacker.getRank() === 1 && defender.getRank() === 10) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
+      this.recordBattle("ATTACKER_ASSASINATED_MARSHAL", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
       return "ATTACKER_ASSASINATED_MARSHAL";
     }
 
     if (attacker.rank > defender.rank) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
+      this.recordBattle("ATTACKER_WINS", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
       return "ATTACKER_WINS";
     } else if (attacker.rank < defender.rank) {
       fromSpace.removePiece();
+      this.recordBattle("DEFENDER_WINS", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
       return "DEFENDER_WINS";
     } else {
       // Same rank: both die
       fromSpace.removePiece();
       toSpace.removePiece();
+      this.recordBattle("BOTH_DIE", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
       return "BOTH_DIE";
     }
   }
@@ -168,12 +185,44 @@ class Game {
     this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
   }
 
+  // Records a battle in the battle log
+  recordBattle(result, attackerRank, defenderRank, attackerColor, defenderColor) {
+    this.battleLog.push({
+      result,
+      attackerRank,
+      defenderRank,
+      attackerColor,
+      defenderColor,
+      timestamp: new Date()
+    });
+  }
+
   hasPiecesLeft(playerColor) {
     for (let x = 0; x < this.board.size; x++) {
       for (let y = 0; y < this.board.size; y++) {
         const space = this.board.getSpace(x, y);
         if (space.piece && space.piece.getOwner() === playerColor) {
           return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Checks if a player has any pieces that can move to a valid location
+  hasAvailableMoves(playerColor) {
+    for (let x = 0; x < this.board.size; x++) {
+      for (let y = 0; y < this.board.size; y++) {
+        const space = this.board.getSpace(x, y);
+        if (space.piece && space.piece.getOwner() === playerColor) {
+          // Check if this piece can move
+          if (space.piece.canMove()) {
+            // Get available moves for this piece
+            const availableMoves = this.board.getAvailableMoves(space);
+            if (availableMoves.length > 0) {
+              return true;
+            }
+          }
         }
       }
     }
@@ -251,7 +300,8 @@ class Game {
     availablePieces: Object.fromEntries(this.players[forPlayerColor].player.getAvailablePieces()),
     setupComplete: this.players[forPlayerColor].player.isSetupComplete(),
     showConfirmation: this.players[forPlayerColor].player.showConfirmation,
-    setupLayout: this.players[forPlayerColor].player.getLayout()
+    setupLayout: this.players[forPlayerColor].player.getLayout(),
+    battleLog: this.battleLog
   };
 }
 
@@ -267,6 +317,7 @@ class Game {
       board: board,
       redLayout: this.players.RED.player.getLayout(),
       blueLayout: this.players.BLUE.player.getLayout(),
+      battleLog: this.battleLog,
     };
   }
 
@@ -278,6 +329,11 @@ class Game {
     game.gameOver = savedData.gameOver;
     game.winner = savedData.winner;
     game.winReason = savedData.winReason;
+
+    // Restore battle log
+    if (savedData.battleLog) {
+      game.battleLog = savedData.battleLog;
+    }
 
     // Restore player layouts
     if (savedData.redLayout) {
