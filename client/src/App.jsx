@@ -703,16 +703,14 @@ function RulesModal({ onClose }) {
             <li>Only one piece may be moved per turn.</li>
             <li>The Flag and Bombs <strong>cannot be moved</strong> once placed.</li>
             <li>The <strong>Scout</strong> may move any number of open squares in a straight line.</li>
-            <li>Once a piece is moved and the hand removed, it cannot be moved back that turn.</li>
-            <li>Pieces cannot be moved back and forth between the same 2 squares in 3 consecutive turns.</li>
+            <li>Once a piece is moved is is the other player's turn.</li>
             <li>A player <strong>must</strong> either move or strike on their turn.</li>
           </ol>
 
           <h3>Strike / Attack Rules</h3>
           <ol>
             <li>When opposing pieces occupy adjoining squares (not diagonal), either player may strike on their turn.</li>
-            <li>A player may move <em>or</em> strike — not both in the same turn.</li>
-            <li>The attacker declares their rank; the defender answers with theirs.</li>
+            <li>The attacker reveals their rank; the defender responds with their own rank.</li>
             <li>The <strong>lower-ranked piece is removed</strong>. The winner moves into the empty square.</li>
             <li>Equal ranks: <strong>both pieces are removed</strong>.</li>
             <li>The <strong>Spy</strong> can only defeat the Marshal — and only if the Spy strikes first. If the Marshal strikes first, the Spy is removed.</li>
