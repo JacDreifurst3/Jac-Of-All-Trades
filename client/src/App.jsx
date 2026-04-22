@@ -132,12 +132,6 @@ export default function App() {
     }
   }, [error]);
 
-  // Clear battle log when switching to a new lobby
-  useEffect(() => {
-    setBattleLog([]);
-    setMessages([]);
-  }, [activeLobby]);
-
 
  useEffect(() => {
   if (!lastBattle) return;
