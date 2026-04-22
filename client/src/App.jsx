@@ -805,7 +805,15 @@ function CapturedLog({ pieces, playerColor }) {
 }
 
 function BattleEntry({ entry }) {
-  const { result, atkLabel, defLabel, atkName, defName, atkColor, defColor } = entry;
+  const { result, attackerRank, defenderRank, attackerColor, defenderColor } = entry;
+  
+  const atkLabel = rankLabel(attackerRank);
+  const defLabel = rankLabel(defenderRank);
+  const atkName = rankName(attackerRank);
+  const defName = rankName(defenderRank);
+  const atkColor = attackerColor;
+  const defColor = defenderColor;
+  
   const atkDead = result === "DEFENDER_WINS" || result === "BOTH_DIE";
   const defDead = result === "ATTACKER_WINS" || result === "BOTH_DIE" || result === "FLAG_CAPTURED";
   const atkColorLow = (atkColor ?? "RED").toLowerCase();
