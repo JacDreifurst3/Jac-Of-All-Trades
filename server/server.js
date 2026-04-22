@@ -67,15 +67,34 @@ io.on("connection", (socket) => {
             await gameService.assignPlayerUID(lobbyCode, playerColor, uid);
             socket.playerColor = playerColor;
             socket.lobbyCode = lobbyCode;
+          
+            const redJoined = !!game.players['RED'].socketId;
+            const blueJoined = !!game.players['BLUE'].socketId;
 
-            socket.emit("gameStateUpdate", game.getGameState(playerColor));
+            if (redJoined && blueJoined) {
+                // Only transition to SETUP if game hasn't already started
+                if (game.gamePhase === 'WAITING') {
+                    game.gamePhase = 'SETUP';
+                }
+                // Send correct state to each player separately
+                const redId = game.players['RED'].socketId;
+                const blueId = game.players['BLUE'].socketId;
+                if (redId) io.to(redId).emit("gameStateUpdate", game.getGameState("RED"));
+                if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
+            } else {
+                // Only set to WAITING if game hasn't progressed past that
+                if (game.gamePhase !== 'SETUP' && game.gamePhase !== 'PLAY') {
+                    game.gamePhase = 'WAITING';
+                }
+                socket.emit("gameStateUpdate", game.getGameState(playerColor));
+            }
+
             console.log(`User joined room: ${lobbyCode}`);
         } catch (err) {
             console.error("joinGame error:", err);
             socket.emit("error", "Failed to join game");
         }
     });
-
     // Returns valid moves for a selected piece
     socket.on("selectPiece", async (data) => {
         const { lobbyCode, x, y } = data;
