@@ -20,7 +20,7 @@ const rankLabel = (rank) => rank === 11 ? "11" : rank === 0 ? "0" : String(rank)
 
 export default function App() {
   const [showCover, setShowCover] = useState(true);
-  const { user, profile } = useAuth();
+  const { user, profile, setProfile } = useAuth();
   const [lobbyInput, setLobbyInput] = useState("");
   const [activeLobby, setActiveLobby] = useState(
     () => sessionStorage.getItem("activeLobby") || null
@@ -130,6 +130,23 @@ export default function App() {
     }
   }, [error]);
 
+  useEffect(() => {
+      if (!gameOver || !user) return;
+      // Wait 2 seconds for backend to finish saving stats before fetching
+      const timer = setTimeout(async () => {
+          try {
+              const res = await fetch(`http://localhost:5001/api/users/${user.uid}`);
+              if (res.ok) {
+                  const updatedProfile = await res.json();
+                  setProfile(updatedProfile);
+              }
+          } catch (err) {
+              console.error("Failed to refresh profile:", err);
+          }
+      }, 2000);
+
+      return () => clearTimeout(timer);
+  }, [gameOver]);
 
  useEffect(() => {
   if (!lastBattle) return;
