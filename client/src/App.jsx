@@ -321,6 +321,9 @@ if (!activeLobby) {
   const handleSquareClick = (space) => {
     if (gameOver) return;
     if (gamePhase === "SETUP") {
+      // Prevent moving pieces once setup is confirmed (even if waiting for opponent)
+      if (setupComplete) return;
+
       const inSetupZone = playerColor === "RED" ? space.x >= 6 : space.x <= 3;
       if (!inSetupZone) return;
 
@@ -489,6 +492,15 @@ if (!activeLobby) {
         const isSetupSelected =
           selectedSetupSlot?.x === space.x && selectedSetupSlot?.y === space.y;
 
+        // During setup, highlight valid placement/move locations
+        const inSetupZone = gamePhase === "SETUP" && !setupComplete && (
+          playerColor === "RED" ? space.x >= 6 : space.x <= 3
+        );
+        const isSetupValid = inSetupZone && (
+          (selectedRank !== null && !space.piece) || // Empty space when placing
+          (selectedSetupSlot && space.piece && space.piece.owner === playerColor) // Piece when moving
+        );
+
         return (
           <div
             key={`${space.x},${space.y}`}
@@ -496,7 +508,7 @@ if (!activeLobby) {
               space.terrain === "WATER" ? "lake" : "grass"
             } ${isSelected || isSetupSelected ? "selected" : ""} ${
               isValidDestination ? "valid-destination" : ""
-            }`}
+            } ${isSetupValid ? "setup-valid" : ""}`}
             onClick={() => handleSquareClick(space)}
           >
             {space.piece && (
