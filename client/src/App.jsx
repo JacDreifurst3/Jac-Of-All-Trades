@@ -32,7 +32,6 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  // On page load, if there's a saved lobby, verify which color this user should be
   useEffect(() => {
     const savedLobby = sessionStorage.getItem("activeLobby");
     if (!savedLobby || !user) return;
@@ -47,7 +46,6 @@ export default function App() {
           sessionStorage.setItem("playerColor", res.data.color);
           setPlayerColor(res.data.color);
         }
-        // Only set the lobby AFTER we know the correct color
         setActiveLobby(savedLobby);
       } catch (err) {
         console.log("Could not verify color, using saved value");
@@ -55,7 +53,6 @@ export default function App() {
       }
     };
 
-    // Clear activeLobby temporarily so useGame doesn't fire too early
     setActiveLobby(null);
     verifyColor();
 }, [user]);
@@ -70,6 +67,10 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [selectedRank, setSelectedRank] = useState(null);
   const [selectedSetupSlot, setSelectedSetupSlot] = useState(null);
+
+  useEffect(() => {
+    setMessages([]);
+  }, [activeLobby]);
   const attackerColorRef = useRef(null);
 
 
@@ -107,12 +108,10 @@ export default function App() {
 
       const color = res.data.color;
       if (!color) {
-        // Player hasn't joined this lobby yet, default to BLUE
         sessionStorage.setItem("activeLobby", lobbyInput);
         sessionStorage.setItem("playerColor", "BLUE");
         setPlayerColor("BLUE");
       } else {
-        // Player is rejoining as their original color
         sessionStorage.setItem("activeLobby", lobbyInput);
         sessionStorage.setItem("playerColor", color);
         setPlayerColor(color);
@@ -228,7 +227,6 @@ if (showCover) {
 
 if (!user) return <LoginPage />;
 
-  // Always-visible profile button
   const profileCorner = (
     <>
       <button onClick={() => setShowProfile(true)} className="profile-btn profile-btn--fixed">
