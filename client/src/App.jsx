@@ -228,7 +228,6 @@ if (showCover) {
 
 if (!user) return <LoginPage />;
 
-  // Always-visible profile button
   const profileCorner = (
     <>
       <button onClick={() => setShowProfile(true)} className="profile-btn profile-btn--fixed">
