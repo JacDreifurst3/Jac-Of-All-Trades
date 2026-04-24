@@ -1800,7 +1800,29 @@
    .rules-modal__body p {
      margin: 0;
    }
-   
+
+   .rules-overview {
+     background: rgba(46, 24, 0, 0.5);
+     border: 1px solid #6b3a1f;
+     border-left: 3px solid #c08a3a;
+     border-radius: 6px;
+     padding: 14px 16px;
+     margin-bottom: 18px;
+     display: flex;
+     flex-direction: column;
+     gap: 10px;
+   }
+   .rules-overview p {
+     margin: 0;
+     color: #d4a96a;
+     font-size: 0.9rem;
+     line-height: 1.65;
+   }
+   .rules-overview strong {
+     color: #e8b86d;
+     font-weight: 600;
+   }
+
    .rules-table {
      width: 100%;
      border-collapse: collapse;
