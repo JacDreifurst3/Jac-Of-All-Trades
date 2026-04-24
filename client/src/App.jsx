@@ -694,6 +694,19 @@ function RulesModal({ onClose }) {
         </div>
         <div className="rules-modal__body">
 
+          <div className="rules-overview">
+            <p>
+              Stratego is a two-player strategy board game where each player commands an army of hidden pieces.
+              The goal is to capture your opponent's Flag while protecting your own.
+            </p>
+            <p>
+              Players secretly arrange their pieces at the start, and each piece has a rank, like soldiers,
+              scouts, bombs, and a spy, that determines the outcome when two pieces battle. Since piece
+              identities are hidden, the game combines <strong>strategy</strong>, <strong>memory</strong>,
+              and <strong>bluffing</strong> to outsmart your opponent.
+            </p>
+          </div>
+
           <h3>Object of the Game</h3>
           <p>Capture your opponent's Flag.</p>
 
