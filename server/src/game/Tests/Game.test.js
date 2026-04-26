@@ -61,15 +61,6 @@ describe("Game Class (Real Engine - No Mocks)", () => {
     expect(to.piece).toBe(piece);
   });
 
-  test("makeMove appends a move to history", () => {
-    const from = game.board.getSpace(0, 0);
-    const piece = new Piece(5, "RED");
-    from.placePiece(piece);
-
-    game.makeMove(0, 0, 0, 1);
-
-    expect(game.moveHistory.length).toBe(1);
-  });
 
   test("throws when moving into own piece", () => {
     const from = game.board.getSpace(0, 0);

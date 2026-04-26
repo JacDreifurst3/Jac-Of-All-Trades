@@ -1,5 +1,4 @@
 const Board = require("./Board");
-const Move = require("./Move");
 const Piece = require('./Piece');
 const Player = require('./Player');
 
@@ -118,16 +117,7 @@ class Game {
       this.board.executeMove(fromSpace, toSpace);
       result = "MOVE";
     }
-    const move = new Move(
-      fromX,
-      fromY,
-      toX,
-      toY,
-      this.currentPlayer,
-      result
-    );
 
-    this.moveHistory.push(move);
     // Swtiches turn to other player now that turn is complete
     this.switchTurn();
 
