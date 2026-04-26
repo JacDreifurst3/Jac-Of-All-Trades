@@ -4,6 +4,7 @@ const Piece = require('./Piece');
 const Player = require('./Player');
 
 class Game {
+  // Constructs new game, creates board, players, and other needed info
   constructor() {
     this.board = new Board();
     this.currentPlayer = "RED";
@@ -19,10 +20,12 @@ class Game {
     }
   }
 
+  // Assigns player to given color and socketID
   assignPlayer(color, socketId) {
     this.players[color].socketId = socketId;
   }
 
+  // Places piece on board during setup
   placePiece(playerColor, x, y, rank) {
     if (this.gamePhase !== "SETUP") {
       throw new Error("Not in setup phase");
@@ -30,6 +33,7 @@ class Game {
     this.players[playerColor].player.placePiece(x, y, rank);
   }
 
+  // Moves piece on board during setup
   moveSetupPiece(playerColor, fromX, fromY, toX, toY) {
     if (this.gamePhase !== "SETUP") {
       throw new Error("Not in setup phase");
@@ -37,6 +41,7 @@ class Game {
     this.players[playerColor].player.movePiece(fromX, fromY, toX, toY);
   }
 
+  // Randomizes player's setup layout on board
   randomizePlayerLayout(playerColor) {
     if (this.gamePhase !== "SETUP") {
       throw new Error("Not in setup phase");
@@ -44,6 +49,7 @@ class Game {
     this.players[playerColor].player.randomizeLayout();
   }
 
+  // Marks that player is done with setup, if both players are ready, begins PLAY
   markPlayerSetupComplete(playerColor) {
     if (this.gamePhase !== "SETUP") {
       throw new Error("Not in setup phase");
@@ -55,6 +61,7 @@ class Game {
     }
   }
 
+  // Sets up pieces on the shared board based on players' setup layouts
   setupInitialPieces() {
     // Populate Blue
     const blueLayout = this.players.BLUE.player.getLayout();
@@ -75,10 +82,12 @@ class Game {
     }
   }
 
+  // Makes move from one space to other
   makeMove(fromX, fromY, toX, toY) {
     if (this.gamePhase !== "PLAY") {
       throw new Error("Game not started yet");
     }
+    // Generates move based on x and y coordinates
     const moveData = this.board.generateMove(fromX, fromY, toX, toY);
     const { fromSpace, toSpace, attacker, defender } = moveData;
 
@@ -95,6 +104,7 @@ class Game {
 
     let result;
 
+    // If space piece is being moved to has opponent's piece, initiate battle logic
     if (defender) {
       result = this.resolveBattle(attacker, defender, fromSpace, toSpace);
       // Check if defender's player has any available moves left (only if game hasn't already ended)
@@ -104,6 +114,7 @@ class Game {
         this.winReason = "no_available_moves";
       }
     } else {
+      // Executes move
       this.board.executeMove(fromSpace, toSpace);
       result = "MOVE";
     }
@@ -117,7 +128,7 @@ class Game {
     );
 
     this.moveHistory.push(move);
-
+    // Swtiches turn to other player now that turn is complete
     this.switchTurn();
 
     // After switching turns, check if the new current player has any available moves
@@ -130,32 +141,39 @@ class Game {
     return result;
   }
 
+  // Resolves battle based on battle logic
   resolveBattle(attacker, defender, fromSpace, toSpace) {
+    // Reveals both pieces to opposing sides
     attacker.reveal();
     defender.reveal();
     
     const attackerColor = this.currentPlayer;
     const defenderColor = attackerColor === "RED" ? "BLUE" : "RED";
     
-    // Flag
+    // Flag loses to any attack
     if (defender.getRank() === 0) {
+      // Removes losing piece from board
       toSpace.removePiece();
+      // Moves attacking space to flag's former position
       this.board.executeMove(fromSpace, toSpace);
+      // Records battle on battle log
       this.recordBattle("FLAG_CAPTURED", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
+      // Capturing flag wins game
       this.gameOver = true;
       this.winner = this.currentPlayer;
       this.winReason = "flag_captured";
       return "FLAG_CAPTURED";
     }
 
+    // Miner (rank 3) defuses bomb
     if (defender.getRank() === 11 && attacker.getRank() === 3) {
-      // Miner (rank 3) defuses bomb
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
       this.recordBattle("ATTACKER_DEFUSED_BOMB", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
       return "ATTACKER_DEFUSED_BOMB";
     }
 
+    // Spy (rank 1) defeats Marshal (rank 10) if spy attacks
     if (attacker.getRank() === 1 && defender.getRank() === 10) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
@@ -163,6 +181,8 @@ class Game {
       return "ATTACKER_ASSASINATED_MARSHAL";
     }
 
+    // Outside of special cases, higher rank wins
+    // Bomb is evaluated as 11 as it defeats all pieces other than miner
     if (attacker.rank > defender.rank) {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
@@ -181,6 +201,7 @@ class Game {
     }
   }
 
+  // Switches current player
   switchTurn() {
     this.currentPlayer = this.currentPlayer === "RED" ? "BLUE" : "RED";
   }
@@ -197,6 +218,7 @@ class Game {
     });
   }
 
+  // Checks if player has any pieces left (no pieces left forfeits game)
   hasPiecesLeft(playerColor) {
     for (let x = 0; x < this.board.size; x++) {
       for (let y = 0; y < this.board.size; y++) {
@@ -209,7 +231,7 @@ class Game {
     return false;
   }
 
-  // Checks if a player has any pieces that can move to a valid location
+  // Checks if a player has any pieces that can move to a valid location (no available move forfeits game)
   hasAvailableMoves(playerColor) {
     for (let x = 0; x < this.board.size; x++) {
       for (let y = 0; y < this.board.size; y++) {
@@ -229,6 +251,7 @@ class Game {
     return false;
   }
 
+  // Gets available moves for a given piece
   getAvailableMovesForPiece(x, y) {
     const space = this.board.getSpace(x, y);
     

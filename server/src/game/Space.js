@@ -1,4 +1,6 @@
 class Space {
+  // Constructs space with given coordinates and terrain (land or water), sets current piece to null
+  // as spaces are only constucted upon board initialization
   constructor(x, y, terrain) {
     this.x = x;
     this.y = y;
@@ -6,25 +8,29 @@ class Space {
     this.piece = null;
   }
 
+  // Returns true if piece is occupied by other piece or water
   isOccupied() {
     return this.piece != null || this.terrain != "LAND";
   }
 
+  // Sets space's piece value to given piece
   placePiece(piece) {
     this.piece = piece;
   }
 
+  // Removes piece from space
   removePiece() {
-    // return removed Piece, maybe to allow for putting in "jail" or wherever players will see defeated pieces
     const removedPiece = this.piece;
     this.piece = null;
     return removedPiece;
   }
 
+  // Gets space's x value
   getX(){
     return this.x;
   }
 
+  // Gets space's y value
   getY(){
     return this.y;
   }
