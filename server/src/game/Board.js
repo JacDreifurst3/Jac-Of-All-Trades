@@ -2,11 +2,13 @@
 const Space = require("./Space");
 
 class Board {
+  // Creates board (default size of 10)
   constructor(size = 10) {
     this.size = size;
     this.grid = this.initializeGrid();
   }
 
+  // Initializes grid with land and water spaces
   initializeGrid() {
     const grid = [];
 
@@ -25,6 +27,7 @@ class Board {
     return grid;
   }
 
+  // Returns given space based on x and y coordinates
   getSpace(x, y) {
     if (x < 0 || y < 0 || x >= this.size || y >= this.size) {
       return null;
@@ -32,7 +35,7 @@ class Board {
     return this.grid[x][y];
   }
 
-  
+  // Returns list of available moves for a piece on a given space
   getAvailableMoves(currentSpace){
     let availableMoves = [];
     let currentX = currentSpace.getX();
@@ -94,6 +97,7 @@ class Board {
     return availableMoves;
   }
 
+  // Returns true if givenn move is valid
   validateMove(currentSpace, possibleSpace){
     if (!possibleSpace) return false;
     
@@ -107,6 +111,7 @@ class Board {
     return true;
   }
 
+  // Generates move based on given x and y coordinates
   generateMove(fromX, fromY, toX, toY) {
     const fromSpace = this.getSpace(fromX, fromY);
     const toSpace = this.getSpace(toX, toY);
@@ -121,7 +126,7 @@ class Board {
     return { fromSpace, toSpace, attacker, defender };
   }
 
-
+  // Moves piece between give spaces
   executeMove(fromSpace, toSpace) {
     toSpace.placePiece(fromSpace.removePiece());
   }
