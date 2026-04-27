@@ -290,7 +290,7 @@ if (!user) return <LoginPage />;
 
       if (selectedRank !== null) {
         if (!space.piece) {
-          const layoutCoords = toLayoutCoords(space);
+          const layoutCoords = toLayoutCoords(space, playerColor);
           placePiece(layoutCoords.x, layoutCoords.y, selectedRank);
           setSelectedRank(null);
         }
@@ -309,8 +309,8 @@ if (!user) return <LoginPage />;
         return;
       }
 
-      const sourceLayout = toLayoutCoords(selectedSetupSlot);
-      const targetLayout = toLayoutCoords(space);
+      const sourceLayout = toLayoutCoords(selectedSetupSlot, playerColor);
+      const targetLayout = toLayoutCoords(space, playerColor);
       moveSetupPiece(sourceLayout.x, sourceLayout.y, targetLayout.x, targetLayout.y);
       setSelectedSetupSlot(null);
       return;
