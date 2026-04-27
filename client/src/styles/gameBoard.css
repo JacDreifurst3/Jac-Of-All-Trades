@@ -1,0 +1,140 @@
+/*
+   game board layout
+*/
+.board-wrapper {
+  position: relative;
+  width: calc(var(--tile) * 10);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0px 0;
+}
+
+.board-bg {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-template-rows: repeat(10, var(--tile));
+  width: calc(var(--tile) * 10);
+  height: calc(var(--tile) * 10);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+/*
+   board tiles (grass, lake, selection states)
+*/
+.tile {
+  width: var(--tile);
+  height: var(--tile);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.tile.grass { background-image: url('../assets/background.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+.tile.lake  { background-image: url('../assets/water.png'); background-size: cover; border: 1px solid rgba(0,0,0,0.15); }
+
+.tile.selected {
+  outline: 3px solid yellow;
+  outline-offset: -3px;
+  z-index: 10;
+  filter: brightness(1.2);
+}
+
+.tile.valid-destination {
+  outline: 3px;
+  outline-offset: -3px;
+  color: rgba(231, 8, 186);
+  box-shadow: inset 0 0 8px rgba(215, 9, 222, 0.968);
+  z-index: 9;
+  cursor: pointer;
+  filter: brightness(1.2);
+}
+
+.tile.valid-destination:hover {
+  background-color: rgba(255, 255, 0, 0.486);
+  box-shadow: inset 0 0 12px rgba(76, 175, 80, 0.8);
+}
+
+/* Setup phase valid placement highlights */
+.tile.setup-valid {
+  outline: 3px;
+  outline-offset: -3px;
+  color: rgba(255, 255, 0, 0.486);
+  box-shadow: inset 0 0 8px rgba(76, 175, 80, 0.8);
+  z-index: 9;
+  cursor: pointer;
+  filter: brightness(1.1);
+}
+
+.tile.setup-valid:hover {
+  background-color: rgba(76, 175, 80, 0.3);
+  box-shadow: inset 0 0 12px rgba(76, 175, 80, 0.8);
+}
+
+/*
+   game pieces
+*/
+.pieces-layer {
+  display: grid;
+}
+
+.castle-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-template-rows: repeat(10, var(--tile));
+  pointer-events: none;
+  z-index: 4;
+}
+
+.piece {
+  width: 90%;
+  height: 90%;
+  position: relative;
+  background-size: 186% 126%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  cursor: pointer;
+}
+
+.piece.red  { background-image: url('../assets/redPiece.png'); }
+.piece.blue { background-image: url('../assets/bluePiece.png'); }
+.piece.castle { z-index: 2; }
+
+.piece.selected {
+  outline: 3px solid yellow;
+  outline-offset: -3px;
+  filter: brightness(1.3);
+}
+
+.piece-icon-wrapper {
+  position: absolute;
+  inset: 0;
+}
+
+.piece-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/*
+   game layout wrapper
+*/
+.game-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
