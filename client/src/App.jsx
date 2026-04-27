@@ -8,15 +8,16 @@ import lobbyBg from "./assets/lobby.png";
 import { useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import ProfileModal from "./components/ProfileModal";
+import RulesModal from "./components/RulesModal.jsx";
+import { BattleLog, CapturedLog, Piece } from "./components/BattleLogs.jsx";
+import { SetupSidebar, SetupInfoSidebar } from "./components/SetupPanels.jsx";
+import LobbyPage from "./pages/LobbyPage.jsx";
+import GameBoard from "./pages/GameBoard.jsx";
+import { rankName, rankLabel, toLayoutCoords } from "./utils/GameInfo.jsx";
 
-const RANK_NAMES = {
-  0: "Flag", 1: "Spy (1)", 2: "Scout (2)", 3: "Miner (3)", 4: "Sergeant (4)",
-  5: "Lieutenant (5)", 6: "Captain (6)", 7: "Major (7)", 8: "Colonel (8)",
-  9: "General (9)", 10: "Marshal (10)", 11: "Bomb"
-};
 
-const rankName = (rank) => RANK_NAMES[rank] ?? `Rank ${rank}`;
-const rankLabel = (rank) => rank === 11 ? "11" : rank === 0 ? "0" : String(rank);
+
+
 
 export default function App() {
   const [showCover, setShowCover] = useState(true);
@@ -206,18 +207,14 @@ export default function App() {
         layoutRow = 3 - space.x;
       }
 
-      if (layoutRow === null) return;
-      const rank = setupLayout[layoutRow]?.[space.y];
-      if (rank !== null && rank !== undefined) {
+      if (layoutRow !== null && setupLayout[layoutRow]) {
+        const rank = setupLayout[layoutRow][space.y];
+        if (rank !== null && rank !== undefined) {
         space.piece = { owner: playerColor, rank };
+        }
       }
     });
   }
-
-  const toLayoutCoords = (space) => {
-    if (playerColor === "RED") return { x: space.x - 6, y: space.y };
-    return { x: 3 - space.x, y: space.y };
-  };
 
   const displayBoard = playerColor === "BLUE" ? [...boardWithSetup].reverse() : boardWithSetup;
 
@@ -260,78 +257,25 @@ if (!user) return <LoginPage />;
     </>
   );
 
-if (!activeLobby) {
+  if (!activeLobby || isWaitingForOpponent) {
   return (
-    <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
-      {profileCorner}
-
-      <button className="rules-btn" onClick={() => setShowRules(true)}>
-        📜 Rules
-      </button>
-
-      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
-
-      <div className="setup-controls">
-        <div className="lobby-card">
-          <div className="lobby-card__header">
-            <div className="lobby-title">STRATEGO</div>
-          </div>
-
-          <div className="lobby-card__body">
-            <div className="lobby-input-group">
-              <div className="lobby-section-label">Join an existing game</div>
-              <input
-                value={lobbyInput}
-                onChange={(e) => { setLobbyInput(e.target.value.toUpperCase()); setLobbyError(null); }}
-                placeholder="Enter Lobby Code"
-              />
-            </div>
-
-            <button className="join-btn" onClick={handleJoinLobby}>
-              ⚔ Join Game
-            </button>
-
-            <div className="lobby-divider">or</div>
-
-            <button
-              className="join-btn primary"
-              onClick={handleCreateGame}
-              disabled={isCreating}
-            >
-              {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-        
-
-  if (isWaitingForOpponent) {
-  return (
-    <div className="lobby-screen" style={{ backgroundImage: `url(${lobbyBg})` }}>
-      {profileCorner}
-
-      <button className="rules-btn" onClick={() => setShowRules(true)}>
-        📜 Rules
-      </button>
-      <div className="setup-controls">
-        <div className="lobby-card">
-          <div className="lobby-card__body">
-            <div className="waiting-container">
-              <h1>Lobby Created!</h1>
-              <p>Share this code with your opponent</p>
-              <div className="lobby-code-display">{activeLobby}</div>
-              <p className="waiting-subtext">Waiting for a second player to join</p>
-              <button className="join-btn red" onClick={() => setActiveLobby(null)}>
-                ✕ Cancel / Leave
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <LobbyPage
+      user={user}
+      profile={profile}
+      setShowProfile={setShowProfile}
+      showProfile={showProfile}
+      showRules={showRules}
+      setShowRules={setShowRules}
+      lobbyInput={lobbyInput}
+      setLobbyInput={setLobbyInput}
+      setLobbyError={setLobbyError}
+      handleJoinLobby={handleJoinLobby}
+      handleCreateGame={handleCreateGame}
+      isCreating={isCreating}
+      activeLobby={activeLobby}
+      gamePhase={gamePhase}
+      setActiveLobby={setActiveLobby}
+    />
   );
 }
 
@@ -420,122 +364,29 @@ if (!activeLobby) {
     <BattleLog entries={battleLog} />
   )}
 
-  <div className="board-wrapper">
-    {error && <div className="error-toast">{error}</div>}
-
-    {gameOver && (
-      <div className="game-over-overlay">
-        <div className="game-over-modal">
-          <h2>Game Over!</h2>
-          <p className={`winner-announcement ${winner?.toLowerCase()}`}>
-            {winner} Team Wins!
-          </p>
-          <p>
-            {winReason === "flag_captured" 
-              ? "The flag has been captured!" 
-              : "The opponent has no available moves!"}
-          </p>
-            <button
-              onClick={() => {
-                sessionStorage.removeItem("activeLobby");
-                sessionStorage.removeItem("playerColor");
-                setActiveLobby(null);
-              }}
-              className="return-lobby-btn"
-            >
-              Return to Lobby
-            </button>
-        </div>
-      </div>
-    )}
-
-    <div className="status-bar">
-      <div className="status-info">
-        <button
-          className="lobby-back-btn"
-          onClick={() => {
-            sessionStorage.removeItem("activeLobby");
-            sessionStorage.removeItem("playerColor");
-            setActiveLobby(null);
-          }}
-        >
-          ⌂ Lobby
-        </button>
-        <span className="status-center-text">
-          Lobby: <strong>{activeLobby}</strong>
-        </span>
-        {gamePhase === "SETUP" && (
-          <span className="status-center-text">
-            <strong>Setup Phase</strong>
-          </span>
-        )}
-        {gamePhase === "PLAY" && (
-          <span className="status-center-text">
-            Turn: <strong className={turn.toLowerCase()}>{turn}</strong>
-          </span>
-        )}
-      </div>
-      {setupComplete && gamePhase === "SETUP" && (
-        <div className="setup-waiting">
-          <div className="setup-waiting__pulse" />
-          Waiting for opponent…
-        </div>
-      )}
-      <div className="status-messages status-messages--centered">
-        {messages.length === 0 ? (
-          <span className="status-msg-empty"></span>
-        ) : (
-          messages.map((m, i) => (
-            <span
-              key={m.id}
-              className={`status-msg ${i === 0 ? "status-msg-latest" : ""}`}
-            >
-              {m.text}
-            </span>
-          ))
-        )}
-      </div>
-    </div>
-
-    <div className="board-bg">
-      {displayBoard.map((space) => {
-        const isValidDestination =
-          selectedPiece &&
-          availableMoves.some((move) => move.x === space.x && move.y === space.y);
-
-        const isSelected =
-          selectedPiece?.x === space.x && selectedPiece?.y === space.y;
-
-        const isSetupSelected =
-          selectedSetupSlot?.x === space.x && selectedSetupSlot?.y === space.y;
-
-        // During setup, highlight valid placement/move locations
-        const inSetupZone = gamePhase === "SETUP" && !setupComplete && (
-          playerColor === "RED" ? space.x >= 6 : space.x <= 3
-        );
-        const isSetupValid = inSetupZone && (
-          (selectedRank !== null && !space.piece) || // Empty space when placing
-          (selectedSetupSlot && space.piece && space.piece.owner === playerColor) // Piece when moving
-        );
-
-        return (
-          <div
-            key={`${space.x},${space.y}`}
-            className={`tile ${
-              space.terrain === "WATER" ? "lake" : "grass"
-            } ${isSelected || isSetupSelected ? "selected" : ""} ${
-              isValidDestination ? "valid-destination" : ""
-            } ${isSetupValid ? "setup-valid" : ""}`}
-            onClick={() => handleSquareClick(space)}
-          >
-            {space.piece && (
-              <Piece owner={space.piece.owner} rank={space.piece.rank} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  </div>
+  <GameBoard
+  activeLobby={activeLobby}
+  gamePhase={gamePhase}
+  turn={turn}
+  playerColor={playerColor}
+  error={error}
+  messages={messages}
+  gameOver={gameOver}
+  winner={winner}
+  winReason={winReason}
+  displayBoard={displayBoard}
+  selectedPiece={selectedPiece}
+  availableMoves={availableMoves}
+  selectedSetupSlot={selectedSetupSlot}
+  selectedRank={selectedRank}
+  setupComplete={setupComplete}
+  handleSquareClick={handleSquareClick}
+  onReturnToLobby={() => {
+    sessionStorage.removeItem("activeLobby");
+    sessionStorage.removeItem("playerColor");
+    setActiveLobby(null);
+  }}
+/>
 
   {gamePhase === "SETUP" ? (
     <SetupInfoSidebar playerColor={playerColor} selectedRank={selectedRank} selectedSetupSlot={selectedSetupSlot} setupComplete={setupComplete} />
@@ -543,353 +394,5 @@ if (!activeLobby) {
     <CapturedLog pieces={capturedPieces} playerColor={playerColor} />
   )}
   </div>
-  );
-}
-
-const RANK_ORDER = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 0];
-
-function SetupSidebar({ availablePieces, selectedRank, setSelectedRank, setSelectedSetupSlot, setupComplete, showConfirmation, randomizeLayout, markSetupComplete, playerColor }) {
-  const totalLeft = Object.values(availablePieces).reduce((a, b) => a + b, 0);
-  const allPlaced = totalLeft === 0;
-
-  return (
-    <div className="setup-sidebar">
-      <div className="setup-sidebar__header">
-        <div className="setup-sidebar__crown">♛</div>
-        <h2 className="setup-sidebar__title">Your Pieces</h2>
-        <div className={`setup-sidebar__team-badge ${playerColor.toLowerCase()}`}>
-          {playerColor === "RED" ? "Red Army" : "Blue Army"}
-        </div>
-      </div>
-
-      <div className="setup-sidebar__counter">
-        <span className="setup-counter__num">{totalLeft}</span>
-        <span className="setup-counter__label">pieces remaining</span>
-        <div className="setup-counter__track">
-          <div
-            className="setup-counter__fill"
-            style={{ width: `${100 - (totalLeft / 40) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="setup-pieces-grid">
-        {RANK_ORDER.map((r) => {
-          const count = availablePieces[r] ?? 0;
-          const isSelected = selectedRank === r;
-          const depleted = count === 0;
-          return (
-            <button
-              key={r}
-              className={`setup-piece-card ${isSelected ? "selected" : ""} ${depleted ? "depleted" : ""} ${playerColor.toLowerCase()}`}
-              onClick={() => {
-                setSelectedRank(isSelected ? null : r);
-                setSelectedSetupSlot(null);
-              }}
-              disabled={depleted}
-              title={rankName(r)}
-            >
-              <div className="setup-piece-card__token">
-                <div className={`piece ${playerColor.toLowerCase()}`}>
-                  <PieceIcon label={String(r)} />
-                </div>
-              </div>
-              <div className="setup-piece-card__info">
-                <span className="setup-piece-card__name">{rankName(r)}</span>
-                <span className="setup-piece-card__count">×{count}</span>
-              </div>
-              {isSelected && <div className="setup-piece-card__glow" />}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="setup-sidebar__actions">
-        {!setupComplete && (
-          <button
-            className="setup-action-btn setup-action-btn--random"
-            onClick={() => {
-              randomizeLayout();
-              setSelectedRank(null);
-              setSelectedSetupSlot(null);
-            }}
-          >
-            <span className="setup-action-btn__icon">⚄</span>
-            Randomize
-          </button>
-        )}
-        {showConfirmation && !setupComplete && (
-          <button className="setup-action-btn setup-action-btn--confirm" onClick={markSetupComplete}>
-            <span className="setup-action-btn__icon">✓</span>
-            Confirm Setup
-          </button>
-        )}
-      </div>
-
-      
-    </div>
-  );
-}
-
-function SetupInfoSidebar({ playerColor, selectedRank, selectedSetupSlot, setupComplete }) {
-  const hints = setupComplete ? [] : [
-    "Select a piece from the left, then click your zone.",
-    "Click an empty tile in your zone to place.",
-    "Click another tile to move or swap.",
-  ];
-
-  const PIECE_TIPS = {
-    10: "Marshal — highest ranking piece, only beaten by the Spy.",
-    9:  "General — second highest ranking piece.",
-    8:  "Colonel — solid frontline attacker.",
-    7:  "Major — versatile mid-rank fighter.",
-    6:  "Captain — reliable attacker.",
-    5:  "Lieutenant — light infantry.",
-    4:  "Sergeant — cannon fodder.",
-    3:  "Miner — the only unit that can defuse Bombs.",
-    2:  "Scout — can move any number of empty spaces horizontally or vertically",
-    1:  "Spy — the only unit that can defeat the Marshal when the spy attacks.",
-    11: "Bomb — immovable and kills any attacker except the Miner.",
-    0:  "Flag — protect at all costs! If captured, you lose.",
-  };
-
-  return (
-    <div className="setup-info-sidebar">
-      <div className="setup-info-sidebar__header">
-        <span className="setup-info-sidebar__icon"></span>
-        <h3>Field Manual</h3>
-      </div>
-
-      {hints.map((h, i) => (
-        <div key={i} className="setup-hint">
-          <div className="setup-hint__arrow">▶</div>
-          <span>{h}</span>
-        </div>
-      ))}
-
-      <div className="setup-tips">
-        {RANK_ORDER.map((r) => (
-          <div
-            key={r}
-            className={`setup-tip-row ${selectedRank === r ? "highlighted" : ""} ${r === 0 || r === 11 ? "special" : ""}`}
-          >
-            <div className={`setup-tip-badge ${playerColor.toLowerCase()}`}>
-              <PieceIcon label={String(r)} />
-            </div>
-            <span className="setup-tip-text">{PIECE_TIPS[r]}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RulesModal({ onClose }) {
-  return (
-    <div className="rules-overlay" onClick={onClose}>
-      <div className="rules-modal" onClick={e => e.stopPropagation()}>
-        <div className="rules-modal__header">
-          <h2 className="rules-modal__title">📜 STRATEGO — Rules</h2>
-          <button className="rules-modal__close" onClick={onClose}>✕</button>
-        </div>
-        <div className="rules-modal__body">
-
-          <div className="rules-overview">
-            <p>
-              Stratego is a two-player strategy board game where each player commands an army of hidden pieces.
-              The goal is to capture your opponent's Flag while protecting your own.
-            </p>
-            <p>
-              Players secretly arrange their pieces at the start, and each piece has a rank, like soldiers,
-              scouts, bombs, and a spy, that determines the outcome when two pieces battle. Since piece
-              identities are hidden, the game combines <strong>strategy</strong>, <strong>memory</strong>,
-              and <strong>bluffing</strong> to outsmart your opponent.
-            </p>
-          </div>
-
-          <h3>Object of the Game</h3>
-          <p>Capture your opponent's Flag.</p>
-
-          <h3>To Start the Game</h3>
-          <ol>
-            <li>Place the board between players so STRATEGO faces each contestant.</li>
-            <li>One player takes Red pieces, the other Blue. Red starts first.</li>
-            <li>Each player gets an army of 40 pieces: 1 Marshal, 1 General, 2 Colonels, 3 Majors, 4 Captains, 4 Lieutenants, 4 Sergeants, 5 Miners, 8 Scouts, 1 Spy, 6 Bombs, and 1 Flag.</li>
-            <li>Fill your half of the board — 10 per row, 4 rows deep. The two middle rows start empty.</li>
-            <li>Pieces face you so the opponent cannot see their rank.</li>
-          </ol>
-
-          <h3>Piece Rankings (High → Low)</h3>
-          <table className="rules-table">
-            <thead><tr><th>Rank</th><th>Piece</th><th>Count</th></tr></thead>
-            <tbody>
-              {[
-                [10,"Marshal",1],[9,"General",1],[8,"Colonel",2],[7,"Major",3],
-                [6,"Captain",4],[5,"Lieutenant",4],[4,"Sergeant",4],[3,"Miner",5],
-                [2,"Scout",8],["S","Spy",1],["B","Bomb",6],["F","Flag",1],
-              ].map(([rank, name, count]) => (
-                <tr key={rank}><td>{rank}</td><td>{name}</td><td>×{count}</td></tr>
-              ))}
-            </tbody>
-          </table>
-
-          <h3>Movement Rules</h3>
-          <ol>
-            <li>Turns alternate — Red first, then Blue.</li>
-            <li>Pieces move one square at a time: forward, backward, or sideways — <strong>not diagonally</strong>.</li>
-            <li>Two lakes in the center have no squares — pieces must move around them.</li>
-            <li>Two pieces cannot occupy the same square.</li>
-            <li>A piece cannot move through or jump over another piece.</li>
-            <li>Only one piece may be moved per turn.</li>
-            <li>The Flag and Bombs <strong>cannot be moved</strong> once placed.</li>
-            <li>The <strong>Scout</strong> may move any number of open squares in a straight line.</li>
-            <li>Once a piece is moved is is the other player's turn.</li>
-            <li>A player <strong>must</strong> either move or strike on their turn.</li>
-          </ol>
-
-          <h3>Strike / Attack Rules</h3>
-          <ol>
-            <li>When opposing pieces occupy adjoining squares (not diagonal), either player may strike on their turn.</li>
-            <li>The attacker reveals their rank; the defender responds with their own rank.</li>
-            <li>The <strong>lower-ranked piece is removed</strong>. The winner moves into the empty square.</li>
-            <li>Equal ranks: <strong>both pieces are removed</strong>.</li>
-            <li>The <strong>Spy</strong> can only defeat the Marshal — and only if the Spy strikes first. If the Marshal strikes first, the Spy is removed.</li>
-            <li>Any piece (except a Miner) that strikes a <strong>Bomb</strong> is lost. The Bomb stays. A Miner defuses a Bomb and moves into its square.</li>
-            <li>Bombs and the Flag can never strike — they must be struck.</li>
-          </ol>
-
-          <h3>Ending the Game</h3>
-          <p>The game ends when:</p>
-          <ul>
-            <li>A player captures the opponent's Flag, OR</li>
-            <li>A player has no pieces that can move (all movable pieces are trapped or eliminated)</li>
-          </ul>
-
-          <h3>Strategy Tips</h3>
-          <ul>
-            <li>Surround your Flag with Bombs, but place some Bombs away from the Flag to mislead your opponent.</li>
-            <li>Keep a few high-ranking pieces in your front lines — but don't lose them quickly.</li>
-            <li>Scouts are great for probing enemy positions early.</li>
-            <li>Save your Miners for the end game to defuse hidden Bombs near the Flag.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Piece({ owner, rank }) {
-  const label = rank === "HIDDEN" ? "" : rank.toString();
-  return (
-    <div className={`piece ${owner.toLowerCase()}`}>
-      <div className="piece-icon-wrapper">
-        <PieceIcon label={label} className="piece-icon" />
-      </div>
-    </div>
-  );
-}
-
-function BattleLog({ entries }) {
-  const listRef = useRef(null);
-  return (
-    <div className="battle-log battle-log--sidebar">
-      <div className="battle-log__header">
-        ⚔ Battle Log
-        {entries.length > 0 && <span className="battle-log__count">{entries.length}</span>}
-      </div>
-      <div className="battle-log__scroll" ref={listRef}>
-        {entries.map((e) => <BattleEntry key={e.id} entry={e} />)}
-      </div>
-    </div>
-  );
-}
-
-function CapturedLog({ pieces, playerColor }) {
-  const redPieces = pieces.filter(p => p.color === "RED");
-  const bluePieces = pieces.filter(p => p.color === "BLUE");
-
-  const [topList, topName, topClass] = playerColor === "RED" 
-    ? [redPieces, "Your Lost Pieces", "red"] 
-    : [bluePieces, "Your Lost Pieces", "blue"];
-    
-  const [bottomList, bottomName, bottomClass] = playerColor === "RED"
-    ? [bluePieces, "Captured Blue", "blue"]
-    : [redPieces, "Captured Red", "red"];
-  const renderPiece = (p) => (
-    <div key={p.id} className="captured-entry">
-      <div className={`battle-piece__token piece ${p.color.toLowerCase()} battle-piece--dead`}>
-        <div className="piece-icon-wrapper">
-          <PieceIcon label={p.label} className="piece-icon" />
-        </div>
-      </div>
-      <span className="captured-entry__name">{p.name}</span>
-    </div>
-  );
-
-  return (
-    <div className="battle-log battle-log--sidebar">
-      <div className="battle-log__header">Pieces Captured</div>
-      <div className="battle-log__scroll--split">
-        <div className="captured-section">
-          <div className={`captured-section__label ${topClass}`}>{topName}</div>
-          {topList.map(renderPiece)}
-        </div>
-        <div className="captured-section__divider" />
-        <div className="captured-section">
-          <div className={`captured-section__label ${bottomClass}`}>{bottomName}</div>
-          {bottomList.map(renderPiece)}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BattleEntry({ entry }) {
-  const { result, attackerRank, defenderRank, attackerColor, defenderColor } = entry;
-  
-  const atkLabel = rankLabel(attackerRank);
-  const defLabel = rankLabel(defenderRank);
-  const atkName = rankName(attackerRank);
-  const defName = rankName(defenderRank);
-  const atkColor = attackerColor;
-  const defColor = defenderColor;
-  
-  const atkDead = result === "DEFENDER_WINS" || result === "BOTH_DIE";
-  const defDead = result === "ATTACKER_WINS" || result === "BOTH_DIE" || result === "FLAG_CAPTURED";
-  const atkColorLow = (atkColor ?? "RED").toLowerCase();
-  const defColorLow = (defColor ?? "BLUE").toLowerCase();
-  const atkLabel2 = (atkColor ?? "RED").charAt(0) + (atkColor ?? "RED").slice(1).toLowerCase();
-  const defLabel2 = (defColor ?? "BLUE").charAt(0) + (defColor ?? "BLUE").slice(1).toLowerCase();
-
-  return (
-    <div className={`battle-entry battle-entry--${result.toLowerCase()}`}>
-      <div className={`battle-piece battle-piece--atk ${atkDead ? "battle-piece--dead" : "battle-piece--alive"}`}>
-        <div className={`battle-piece__token piece ${atkColorLow}`}>
-          <div className="piece-icon-wrapper">
-            <PieceIcon label={atkLabel} className="piece-icon" />
-          </div>
-        </div>
-        <span className="battle-piece__name">{atkName}</span>
-      </div>
-      <div className="battle-vs">
-        <span className="battle-vs__label">
-          {result === "BOTH_DIE" ? "✕✕" : result === "ATTACKER_WINS" || result === "FLAG_CAPTURED" ? "▶" : "◀"}
-        </span>
-      </div>
-      <div className={`battle-piece battle-piece--def ${defDead ? "battle-piece--dead" : "battle-piece--alive"}`}>
-        <div className={`battle-piece__token piece ${defColorLow}`}>
-          <div className="piece-icon-wrapper">
-            <PieceIcon label={defLabel} className="piece-icon" />
-          </div>
-        </div>
-        <span className="battle-piece__name">{defName}</span>
-      </div>
-      <div className="battle-outcome">
-        {result === "ATTACKER_WINS" && <span className={`battle-tag battle-tag--${atkColorLow}`}>{atkLabel2} Defeats</span>}
-        {result === "DEFENDER_WINS" && <span className={`battle-tag battle-tag--${defColorLow}`}>{defLabel2} Defeats</span>}
-        {result === "BOTH_DIE"      && <span className="battle-tag battle-tag--draw">Both Eliminated</span>}
-        {result === "FLAG_CAPTURED" && <span className="battle-tag battle-tag--flag"> Flag Captured!</span>}
-      </div>
-    </div>
   );
 }
