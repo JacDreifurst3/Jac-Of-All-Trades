@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from "../context/AuthContext";
 
@@ -35,6 +35,10 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   const [battleLog, setBattleLog] = useState([]);
   const { user } = useAuth();
 
+  // Track the last move destination so we can inject toX/toY into moveResult
+  // if the backend doesn't send them.
+  const lastMoveDestRef = useRef(null);
+
   useEffect(() => {
     if (!lobbyCode) return;
 
@@ -64,7 +68,14 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     });
 
     socket.on("moveResult", (data) => {
-      setLastBattle(data);
+      console.log("moveResult payload:", data);
+
+      // If backend already sends toX/toY, use them.
+      // Otherwise fall back to the coordinates we remembered when sendMove was called.
+      const toX = data.toX ?? lastMoveDestRef.current?.toX ?? null;
+      const toY = data.toY ?? lastMoveDestRef.current?.toY ?? null;
+
+      setLastBattle({ ...data, toX, toY });
     });
 
     socket.on("error", (msg) => {
@@ -85,6 +96,8 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   }, [lobbyCode]);
 
   const sendMove = (fromX, fromY, toX, toY) => {
+    // Remember where this move is going so moveResult can use it
+    lastMoveDestRef.current = { toX, toY };
     socket.emit("makeMove", { lobbyCode, fromX, fromY, toX, toY });
   };
 

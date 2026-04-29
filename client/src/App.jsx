@@ -149,6 +149,8 @@ export default function App() {
       return () => clearTimeout(timer);
   }, [gameOver]);
 
+ const [battleEvent, setBattleEvent] = useState(null);
+
  useEffect(() => {
   if (!lastBattle) return;
 
@@ -168,7 +170,11 @@ export default function App() {
 
   if (msg) setMessages([{ id: Date.now(), text: msg }]);
 
-  setLastBattle(null);
+  // Pass battle event (with coordinates) to GameBoard for explosion animation
+  setBattleEvent({ ...lastBattle });
+
+  // Delay clearing so GameBoard's useEffect can read it
+  setTimeout(() => setLastBattle(null), 100);
 }, [lastBattle, turn]);
 
   const capturedPieces = battleLog.flatMap((e) => {
@@ -381,6 +387,7 @@ if (!user) return <LoginPage />;
   selectedRank={selectedRank}
   setupComplete={setupComplete}
   handleSquareClick={handleSquareClick}
+  lastBattle={battleEvent}
   onReturnToLobby={() => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");

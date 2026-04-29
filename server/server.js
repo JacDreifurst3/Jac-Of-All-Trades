@@ -204,7 +204,9 @@ io.on("connection", (socket) => {
             if (blueId) io.to(blueId).emit("gameStateUpdate", game.getGameState("BLUE"));
 
             if (defenderRank !== undefined) {
-                const battleData = { result, attackerRank, defenderRank };
+                const attackerColor = game.currentPlayer === "RED" ? "BLUE" : "RED";
+                const defenderColor = attackerColor === "RED" ? "BLUE" : "RED";
+                const battleData = { result, attackerRank, defenderRank, attackerColor, defenderColor, toX, toY };
                 if (redId) io.to(redId).emit("moveResult", battleData);
                 if (blueId) io.to(blueId).emit("moveResult", battleData);
             }
