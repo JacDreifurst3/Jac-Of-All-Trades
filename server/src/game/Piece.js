@@ -47,6 +47,10 @@ class Piece{
         this.isRevealed = false;
     }
 
+    getIsRevealed(){
+        return this.isRevealed === true;
+    }
+
     // Returns rank of piece
     getRank(){
         return this.rank;

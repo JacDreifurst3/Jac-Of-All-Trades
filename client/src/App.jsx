@@ -33,6 +33,7 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [beginnerMode, setBeginnerMode] = useState(true);
   useEffect(() => {
     const savedLobby = sessionStorage.getItem("activeLobby");
     if (!savedLobby || !user) return;
@@ -58,7 +59,7 @@ export default function App() {
     verifyColor();
 }, [user]);
 
-  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog } = useGame(activeLobby, playerColor, () => {
+  const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog, beginnerMode: serverBeginnerMode} = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
     setActiveLobby(null);
@@ -80,7 +81,7 @@ export default function App() {
     setIsCreating(true);
     setLobbyError(null);
     try {
-      const response = await axios.post('http://localhost:5001/api/games/create');
+      const response = await axios.post('http://localhost:5001/api/games/create', { beginnerMode });
       const { lobbyCode } = response.data;
       sessionStorage.setItem("activeLobby", lobbyCode);
       sessionStorage.setItem("playerColor", "RED");
@@ -174,7 +175,9 @@ export default function App() {
   const capturedPieces = battleLog.flatMap((e) => {
     const pieces = [];
     const atkDead = e.result === "DEFENDER_WINS" || e.result === "BOTH_DIE";
-    const defDead = e.result === "ATTACKER_WINS" || e.result === "BOTH_DIE" || e.result === "FLAG_CAPTURED";
+    const defDead = e.result === "ATTACKER_WINS" || e.result === "BOTH_DIE" || 
+                    e.result === "FLAG_CAPTURED" || e.result === "ATTACKER_DEFUSED_BOMB" || 
+                    e.result === "ATTACKER_ASSASINATED_MARSHAL";
     
     if (atkDead) {
       pieces.push({ 
@@ -275,6 +278,8 @@ if (!user) return <LoginPage />;
       activeLobby={activeLobby}
       gamePhase={gamePhase}
       setActiveLobby={setActiveLobby}
+      beginnerMode={beginnerMode}
+      setBeginnerMode={setBeginnerMode}
     />
   );
 }
@@ -361,7 +366,7 @@ if (!user) return <LoginPage />;
       playerColor={playerColor}
     />
   ) : (
-    <BattleLog entries={battleLog} />
+    <BattleLog entries={battleLog} beginnerMode={serverBeginnerMode} />
   )}
 
   <GameBoard

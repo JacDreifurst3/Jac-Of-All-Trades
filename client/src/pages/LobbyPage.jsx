@@ -18,7 +18,9 @@ export default function LobbyPage({
   isCreating,
   activeLobby,
   gamePhase,
-  setActiveLobby
+  setActiveLobby,
+  beginnerMode,
+  setBeginnerMode
 }) {
   const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
 
@@ -79,6 +81,25 @@ export default function LobbyPage({
                 </button>
 
                 <div className="lobby-divider">or</div>
+
+                <div className="beginner-mode-toggle">
+                  <label className="toggle-label">
+                    <input
+                      type="checkbox"
+                      checked={beginnerMode}
+                      onChange={(e) => setBeginnerMode(e.target.checked)}
+                    />
+                    <span className="toggle-switch"></span>
+                    <span className="toggle-text">
+                      {beginnerMode ? "Beginner Mode" : "Competitive Mode"}
+                    </span>
+                  </label>
+                  <p className="toggle-hint">
+                    {beginnerMode 
+                      ? "Revealed pieces stay visible, battle log shows full history" 
+                      : "Revealed pieces hide after each turn, old battle log entries are hidden"}
+                  </p>
+                </div>
 
                 <button
                   className="join-btn primary"

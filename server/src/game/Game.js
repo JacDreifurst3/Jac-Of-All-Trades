@@ -4,7 +4,7 @@ const Player = require('./Player');
 
 class Game {
   // Constructs new game, creates board, players, and other needed info
-  constructor() {
+  constructor(beginnerMode = true) {
     this.board = new Board();
     this.currentPlayer = "RED";
     this.moveHistory = [];
@@ -13,6 +13,8 @@ class Game {
     this.gameOver = false;
     this.winner = null;
     this.winReason = null;
+    this.beginnerMode = beginnerMode;
+    this.revealedAfterBattle = null;
     this.players = {
       'RED' : { socketId: null, player: new Player("Red") },
       'BLUE' : { socketId: null, player: new Player("Blue") }
@@ -86,6 +88,17 @@ class Game {
     if (this.gamePhase !== "PLAY") {
       throw new Error("Game not started yet");
     }
+
+    // Hide piece revealed from previous battle
+    if (!this.beginnerMode && this.revealedAfterBattle) {
+      const { x, y } = this.revealedAfterBattle;
+      const space = this.board.getSpace(x, y);
+      if (space.piece && space.piece.getIsRevealed()) {
+        space.piece.hide();
+      }
+      this.revealedAfterBattle = null;
+    }
+
     // Generates move based on x and y coordinates
     const moveData = this.board.generateMove(fromX, fromY, toX, toY);
     const { fromSpace, toSpace, attacker, defender } = moveData;
@@ -118,7 +131,6 @@ class Game {
       result = "MOVE";
     }
 
-    // Swtiches turn to other player now that turn is complete
     this.switchTurn();
 
     // After switching turns, check if the new current player has any available moves
@@ -160,6 +172,7 @@ class Game {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
       this.recordBattle("ATTACKER_DEFUSED_BOMB", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
+      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
       return "ATTACKER_DEFUSED_BOMB";
     }
 
@@ -168,6 +181,7 @@ class Game {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
       this.recordBattle("ATTACKER_ASSASINATED_MARSHAL", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
+      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
       return "ATTACKER_ASSASINATED_MARSHAL";
     }
 
@@ -177,16 +191,19 @@ class Game {
       toSpace.removePiece();
       this.board.executeMove(fromSpace, toSpace);
       this.recordBattle("ATTACKER_WINS", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
+      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
       return "ATTACKER_WINS";
     } else if (attacker.rank < defender.rank) {
       fromSpace.removePiece();
       this.recordBattle("DEFENDER_WINS", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
+      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
       return "DEFENDER_WINS";
     } else {
       // Same rank: both die
       fromSpace.removePiece();
       toSpace.removePiece();
       this.recordBattle("BOTH_DIE", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
+      this.revealedAfterBattle = null;
       return "BOTH_DIE";
     }
   }
@@ -198,13 +215,15 @@ class Game {
 
   // Records a battle in the battle log
   recordBattle(result, attackerRank, defenderRank, attackerColor, defenderColor) {
+    const timestamp = Date.now();
     this.battleLog.push({
+      id: `battle-${timestamp}-${Math.random().toString(36).slice(2, 7)}`,
       result,
       attackerRank,
       defenderRank,
       attackerColor,
       defenderColor,
-      timestamp: new Date()
+      timestamp
     });
   }
 
@@ -314,7 +333,8 @@ class Game {
     setupComplete: this.players[forPlayerColor].player.isSetupComplete(),
     showConfirmation: this.players[forPlayerColor].player.showConfirmation,
     setupLayout: this.players[forPlayerColor].player.getLayout(),
-    battleLog: this.battleLog
+    battleLog: this.battleLog,
+    beginnerMode: this.beginnerMode
   };
 }
 
@@ -327,6 +347,7 @@ class Game {
       gameOver: this.gameOver,
       winner: this.winner,
       winReason: this.winReason,
+      beginnerMode: this.beginnerMode,
       board: board,
       redLayout: this.players.RED.player.getLayout(),
       blueLayout: this.players.BLUE.player.getLayout(),
@@ -336,7 +357,7 @@ class Game {
 
   // Restores a game from saved MongoDB data
   static loadFromDB(savedData) {
-    const game = new Game();
+    const game = new Game(savedData.beginnerMode);
     game.currentPlayer = savedData.currentPlayer;
     game.gamePhase = savedData.gamePhase;
     game.gameOver = savedData.gameOver;
