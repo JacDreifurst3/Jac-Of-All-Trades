@@ -35,8 +35,13 @@ io.on("connection", (socket) => {
     // Player joins or rejoins a lobby — creates game if it doesn't exist, restores from MongoDB if it does
     socket.on("joinGame", async ({ lobbyCode, playerColor, uid }) => {
         try {
+            // First check if game exists in MongoDB (for existing games)
+            const existingGameDoc = await GameModel.findOne({ lobbyCode, status: { $ne: 'FINISHED' } });
+            
             if (!await gameService.getGame(lobbyCode)) {
-                await gameService.createGame(lobbyCode);
+                // Use beginnerMode from MongoDB if available, otherwise default to true
+                const beginnerMode = existingGameDoc?.beginnerMode ?? true;
+                await gameService.createGame(lobbyCode, beginnerMode);
             }
 
             const game = await gameService.getGame(lobbyCode);

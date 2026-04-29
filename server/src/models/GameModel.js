@@ -43,6 +43,7 @@ const gameSchema = new mongoose.Schema({
     gamePhase: { type: String, default: 'SETUP' },          // "SETUP" or "PLAY"
     gameOver: { type: Boolean, default: false },
     winReason: { type: String, default: null },             // "flag_captured" or "no_available_moves"
+    beginnerMode: { type: Boolean, default: true },          // Beginner mode toggle
 
     // Full board snapshot — array of rows, each row is an array of spaces
     board: { type: [[spaceSchema]], default: null },

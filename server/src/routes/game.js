@@ -7,7 +7,8 @@ const GameModel = require('../models/GameModel');
 // Creates a new game instance and returns the lobby code
 router.post('/create', async (req, res) => {
     const lobbyCode = Math.random().toString(36).substring(2, 7).toUpperCase();
-    await gameService.createGame(lobbyCode);
+    const { beginnerMode } = req.body;
+    await gameService.createGame(lobbyCode, beginnerMode);
     res.status(201).json({ lobbyCode });
 });
 

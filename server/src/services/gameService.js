@@ -8,13 +8,13 @@ const activeGames = new Map();
 const gameService = {
 
     // Creates a new game in memory and saves it to MongoDB
-    createGame: async (lobbyCode) => {
-        const newGame = new Game();
+    createGame: async (lobbyCode, beginnerMode = true) => {
+        const newGame = new Game(beginnerMode);
         activeGames.set(lobbyCode, newGame);
 
         await GameModel.findOneAndUpdate(
             { lobbyCode },
-            { lobbyCode, status: 'WAITING' },
+            { lobbyCode, status: 'WAITING', beginnerMode },
             { upsert: true, new: true }
         );
 
