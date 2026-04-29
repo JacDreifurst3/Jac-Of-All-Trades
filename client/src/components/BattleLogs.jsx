@@ -22,8 +22,18 @@ export function Piece({ owner, rank }) {
   );
 }
 
-export function BattleLog({ entries }) {
+export function BattleLog({ entries, beginnerMode = true }) {
   const listRef = useRef(null);
+  
+  // Battle log comes from server with oldest first (index 0) - reverse to show newest at top
+  const reversedEntries = [...entries].reverse();
+  
+  // In non-beginner mode, only show rank for the most recent battle
+  const displayEntries = beginnerMode ? reversedEntries : (() => {
+    const newest = Math.max(...entries.map(e => e.timestamp));
+    return reversedEntries.map(e => ({ ...e, isMostRecent: e.timestamp === newest }));
+  })();
+  
   return (
     <div className="battle-log battle-log--sidebar">
       <div className="battle-log__header">
@@ -31,7 +41,7 @@ export function BattleLog({ entries }) {
         {entries.length > 0 && <span className="battle-log__count">{entries.length}</span>}
       </div>
       <div className="battle-log__scroll" ref={listRef}>
-        {entries.map((e) => <BattleEntry key={e.id} entry={e} />)}
+        {displayEntries.map((e) => <BattleEntry key={e.id} entry={e} />)}
       </div>
     </div>
   );
@@ -48,16 +58,20 @@ export function CapturedLog({ pieces, playerColor }) {
   const [bottomList, bottomName, bottomClass] = playerColor === "RED"
     ? [bluePieces, "Captured Blue", "blue"]
     : [redPieces, "Captured Red", "red"];
-  const renderPiece = (p) => (
-    <div key={p.id} className="captured-entry">
-      <div className={`battle-piece__token piece ${p.color.toLowerCase()} battle-piece--dead`}>
-        <div className="piece-icon-wrapper">
-          <PieceIcon label={p.label} className="piece-icon" />
+  const renderPiece = (p) => {
+    // Ensure color is valid
+    const color = p.color && p.color.trim() ? p.color : (playerColor === "RED" ? "BLUE" : "RED");
+    return (
+      <div key={p.id} className="captured-entry">
+        <div className={`battle-piece__token piece ${color.toLowerCase()} battle-piece--dead`}>
+          <div className="piece-icon-wrapper">
+            <PieceIcon label={p.label} className="piece-icon" />
+          </div>
         </div>
+        <span className="captured-entry__name">{p.name}</span>
       </div>
-      <span className="captured-entry__name">{p.name}</span>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="battle-log battle-log--sidebar">
@@ -78,21 +92,28 @@ export function CapturedLog({ pieces, playerColor }) {
 }
 
 export function BattleEntry({ entry }) {
-  const { result, attackerRank, defenderRank, attackerColor, defenderColor } = entry;
+  const { result, attackerRank, defenderRank, attackerColor, defenderColor, isMostRecent } = entry;
   
-  const atkLabel = rankLabel(attackerRank);
-  const defLabel = rankLabel(defenderRank);
-  const atkName = rankName(attackerRank);
-  const defName = rankName(defenderRank);
-  const atkColor = attackerColor;
-  const defColor = defenderColor;
+  // In non-beginner mode, hide ranks except for the most recent battle
+  const showRanks = isMostRecent !== false;
+  
+  const atkLabel = showRanks ? rankLabel(attackerRank) : "?";
+  const defLabel = showRanks ? rankLabel(defenderRank) : "?";
+  const atkName = showRanks ? rankName(attackerRank) : "Hidden";
+  const defName = showRanks ? rankName(defenderRank) : "Hidden";
+  
+  // Ensure colors are always valid - default to RED/BLUE if missing
+  const atkColor = attackerColor && attackerColor.trim() ? attackerColor : "RED";
+  const defColor = defenderColor && defenderColor.trim() ? defenderColor : "BLUE";
   
   const atkDead = result === "DEFENDER_WINS" || result === "BOTH_DIE";
-  const defDead = result === "ATTACKER_WINS" || result === "BOTH_DIE" || result === "FLAG_CAPTURED";
-  const atkColorLow = (atkColor ?? "RED").toLowerCase();
-  const defColorLow = (defColor ?? "BLUE").toLowerCase();
-  const atkLabel2 = (atkColor ?? "RED").charAt(0) + (atkColor ?? "RED").slice(1).toLowerCase();
-  const defLabel2 = (defColor ?? "BLUE").charAt(0) + (defColor ?? "BLUE").slice(1).toLowerCase();
+  const defDead = result === "ATTACKER_WINS" || result === "BOTH_DIE" || 
+                  result === "FLAG_CAPTURED" || result === "ATTACKER_DEFUSED_BOMB" || 
+                  result === "ATTACKER_ASSASINATED_MARSHAL";
+  const atkColorLow = atkColor.toLowerCase();
+  const defColorLow = defColor.toLowerCase();
+  const atkLabel2 = atkColor.charAt(0) + atkColor.slice(1).toLowerCase();
+  const defLabel2 = defColor.charAt(0) + defColor.slice(1).toLowerCase();
 
   return (
     <div className={`battle-entry battle-entry--${result.toLowerCase()}`}>
