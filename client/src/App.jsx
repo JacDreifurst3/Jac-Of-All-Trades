@@ -152,6 +152,49 @@ export default function App() {
 
  const [battleEvent, setBattleEvent] = useState(null);
 
+ const handleDragStart = (e, space) => {
+  if (!space.piece || space.piece.owner !== playerColor) {
+    e.preventDefault();
+    return;
+  }  
+  e.dataTransfer.setData("sourceX", space.x);
+  e.dataTransfer.setData("sourceY", space.y);
+
+  setTimeout(() => (e.target.style.visibility = "hidden"), 0);
+  
+  if (gamePhase === "PLAY" && turn === playerColor) {
+    selectPiece(space.x, space.y);
+  }
+};
+
+const handleDrop = (e, targetSpace) => {
+  e.preventDefault();
+  const sourceX = parseInt(e.dataTransfer.getData("sourceX"));
+  const sourceY = parseInt(e.dataTransfer.getData("sourceY"));
+
+  
+  if (gamePhase === "SETUP" && !setupComplete) {
+    const inSetupZone = playerColor === "RED" ? targetSpace.x >= 6 : targetSpace.x <= 3;
+    
+    if (inSetupZone) {
+      const sourceLayout = toLayoutCoords({ x: sourceX, y: sourceY }, playerColor);
+      const targetLayout = toLayoutCoords(targetSpace, playerColor);
+      moveSetupPiece(sourceLayout.x, sourceLayout.y, targetLayout.x, targetLayout.y);
+    }
+  } 
+  
+  else if (gamePhase === "PLAY" && turn === playerColor) {
+    const isValidMove = availableMoves.some(
+      move => move.x === targetSpace.x && move.y === targetSpace.y
+    );
+    if (isValidMove) {
+      sendMove(sourceX, sourceY, targetSpace.x, targetSpace.y);
+    }
+    clearSelection();
+  }
+  document.querySelectorAll('.piece-draggable-wrapper').forEach(el => el.style.visibility = 'visible');
+};
+
  useEffect(() => {
   if (!lastBattle) return;
 
@@ -398,6 +441,8 @@ if (!user) return <LoginPage />;
     sessionStorage.removeItem("playerColor");
     setActiveLobby(null);
   }}
+  onDragStart={handleDragStart}
+  onDrop={handleDrop}
 />
 
   {gamePhase === "SETUP" ? (
