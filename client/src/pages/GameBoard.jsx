@@ -3,27 +3,27 @@ import { Piece } from "../components/BattleLogs.jsx";
 
 /* ─── Explosion particle data ─────────────────────────────── */
 const PARTICLE_COUNT = 12;
-const EMBER_COUNT    = 8;
+const EMBER_COUNT = 8;
 
 function buildParticles(colorClass) {
   const particles = [];
   // Round sparks
   for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const angle  = (360 / PARTICLE_COUNT) * i + Math.random() * 15;
-    const dist   = 28 + Math.random() * 32;
-    const rad    = (angle * Math.PI) / 180;
-    const tx     = Math.cos(rad) * dist;
-    const ty     = Math.sin(rad) * dist;
-    const dur    = 0.45 + Math.random() * 0.25;
-    const delay  = Math.random() * 0.08;
+    const angle = (360 / PARTICLE_COUNT) * i + Math.random() * 15;
+    const dist = 28 + Math.random() * 32;
+    const rad = (angle * Math.PI) / 180;
+    const tx = Math.cos(rad) * dist;
+    const ty = Math.sin(rad) * dist;
+    const dur = 0.45 + Math.random() * 0.25;
+    const delay = Math.random() * 0.08;
     // Alternating colors: primary, light, white
     const colors = colorClass === "red"
       ? ["#e04040", "#ff8080", "#ffdddd", "#ff4400"]
       : colorClass === "blue"
-      ? ["#4080e0", "#80b4ff", "#ddeeff", "#40c0ff"]
-      : colorClass === "flag"
-      ? ["#f5dd81", "#ffe066", "#fff5cc", "#ffaa00"]
-      : ["#e0a020", "#ffcc44", "#ffeeaa", "#ff6600"]; // both
+        ? ["#4080e0", "#80b4ff", "#ddeeff", "#40c0ff"]
+        : colorClass === "flag"
+          ? ["#f5dd81", "#ffe066", "#fff5cc", "#ffaa00"]
+          : ["#e0a020", "#ffcc44", "#ffeeaa", "#ff6600"]; // both
     const bg = colors[i % colors.length];
     particles.push(
       <div
@@ -43,16 +43,16 @@ function buildParticles(colorClass) {
   // Ember streaks
   for (let i = 0; i < EMBER_COUNT; i++) {
     const angle = (360 / EMBER_COUNT) * i + Math.random() * 20;
-    const dist  = 22 + Math.random() * 28;
-    const rad   = (angle * Math.PI) / 180;
-    const tx    = Math.cos(rad) * dist;
-    const ty    = Math.sin(rad) * dist;
-    const dur   = 0.55 + Math.random() * 0.2;
+    const dist = 22 + Math.random() * 28;
+    const rad = (angle * Math.PI) / 180;
+    const tx = Math.cos(rad) * dist;
+    const ty = Math.sin(rad) * dist;
+    const dur = 0.55 + Math.random() * 0.2;
     const delay = 0.02 + Math.random() * 0.06;
-    const bg    = colorClass === "red"  ? "#ff6020"
-                : colorClass === "blue" ? "#20a0ff"
-                : colorClass === "flag" ? "#ffcc00"
-                : "#ffaa00";
+    const bg = colorClass === "red" ? "#ff6020"
+      : colorClass === "blue" ? "#20a0ff"
+        : colorClass === "flag" ? "#ffcc00"
+          : "#ffaa00";
     particles.push(
       <div
         key={`e-${i}`}
@@ -93,7 +93,7 @@ function ExplosionOverlay({ explosion, displayBoard }) {
 
   // Centre of the tile in percent (board is 10×10)
   const left = `${(displayCol / 10) * 100 + 5}%`;
-  const top  = `${(displayRow / 10) * 100 + 5}%`;
+  const top = `${(displayRow / 10) * 100 + 5}%`;
 
   const flashBg = "rgba(255, 220, 40, 0.75)";
 
@@ -130,6 +130,8 @@ export default function GameBoard({
   handleSquareClick,
   onReturnToLobby,
   lastBattle,           // NEW — passed from App.jsx
+  onDragStart,
+  onDrop
 }) {
   const [explosion, setExplosion] = useState(null);
   const explosionTimer = useRef(null);
@@ -145,9 +147,9 @@ export default function GameBoard({
     // Determine explosion colour theme
     let colorClass;
     if (result === "FLAG_CAPTURED") colorClass = "flag";
-    else if (result === "BOTH_DIE")      colorClass = "both";
+    else if (result === "BOTH_DIE") colorClass = "both";
     else if (result === "ATTACKER_WINS") colorClass = defenderColor?.toLowerCase() ?? "red";
-    else                                 colorClass = attackerColor?.toLowerCase() ?? "blue";
+    else colorClass = attackerColor?.toLowerCase() ?? "blue";
 
     // Clear any previous explosion immediately
     clearTimeout(explosionTimer.current);
@@ -251,10 +253,23 @@ export default function GameBoard({
                 ${isSelected || isSetupSelected ? "selected" : ""}
                 ${isValidDestination ? "valid-destination" : ""}
                 ${isSetupValid ? "setup-valid" : ""}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => onDrop(e, space)}
               onClick={() => handleSquareClick(space)}
             >
               {space.piece && (
-                <Piece owner={space.piece.owner} rank={space.piece.rank} />
+                <div
+                  className="piece-draggable-wrapper"
+                  draggable={gamePhase === "SETUP" || (gamePhase === "PLAY" && turn === playerColor)}
+
+                  onDragStart={(e) => 
+                    onDragStart(e, space)
+                  }
+                >
+                  <div className="piece-container" style={{ pointerEvents: 'none' }}>
+                    <Piece owner={space.piece.owner} rank={space.piece.rank} />
+                  </div>
+                </div>
               )}
             </div>
           );
