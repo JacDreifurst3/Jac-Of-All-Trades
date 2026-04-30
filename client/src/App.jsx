@@ -104,6 +104,8 @@ const handleCreateHotseat = async () => {
   const handleCreateGame = async () => {
     setIsCreating(true);
     setLobbyError(null);
+    setIsHotseat(false);
+    sessionStorage.removeItem("isHotseat");
     try {
       const response = await axios.post('http://localhost:5001/api/games/create', { beginnerMode });
       const { lobbyCode } = response.data;
@@ -504,7 +506,9 @@ if (handoffPending) {
   onReturnToLobby={() => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
+    sessionStorage.removeItem("isHotseat");
     setActiveLobby(null);
+    setIsHotseat(false);
   }}
   onDragStart={handleDragStart}
   onDrop={handleDrop}
