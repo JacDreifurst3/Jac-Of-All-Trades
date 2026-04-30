@@ -8,14 +8,34 @@
   letter-spacing: 0.02em;
   color: #e8d5a3;
   display: flex;
-  align-items: stretch;
-  gap: 13px;
+  align-items: center;
+  position: relative;
   padding: 5px 15px;
   margin-bottom: 12px;
   background: linear-gradient(180deg, #3f0601 0%, #240800 100%);
   border-radius: 4px;
   border: 5px solid #8b6914;
   box-shadow: 0 4px 12px rgba(90, 0, 0, 0.6), inset 0 1px 0 rgba(255,210,100,0.1);
+}
+
+.status-bar__center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.status-bar__divider {
+  display: inline-block;
+  width: 2px;
+  height: 22px;
+  background: #8b6914;
+  border-radius: 1px;
+  opacity: 0.7;
+  flex-shrink: 0;
 }
 
 .lobby-back-btn {
@@ -32,47 +52,7 @@
   text-transform: uppercase;
 }
 
-.status-info {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 20px;
-  flex-shrink: 0;
-  padding-right: 11px;
-  border-right: 5px solid #8b6914;
-  margin: -10px 0;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
 
-.status-messages {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  overflow-y: auto;
-  max-height: 60px;
-  padding-top: 2px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.2) transparent;
-}
-
-.status-msg {
-  font-size: 18px;
-  color: #d4a843;
-  letter-spacing: 0.06em;
-}
-
-.status-msg-latest {
-  color: #f5cc6a;
-  font-weight: 700;
-}
-
-.status-msg-empty {
-  font-size: 14px;
-  color: rgba(180, 140, 60, 0.3);
-  letter-spacing: 0.15em;
-  font-style: italic;
-}
 
 .status-bar strong {
   font-weight: 800;
@@ -105,35 +85,54 @@
 
 .status-center-text {
   text-align: center;
+  white-space: nowrap;
 }
 
-.status-messages--centered {
-  align-items: center;
-}
 
 /*
-   setup waiting indicator
+   waiting for opponent overlay
 */
-.setup-waiting {
+.waiting-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: grayscale(60%) brightness(0.75);
+  -webkit-backdrop-filter: grayscale(60%) brightness(0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 12px;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: #8b7040;
-  text-transform: uppercase;
+  z-index: 500;
+  pointer-events: none;
 }
 
-.setup-waiting__pulse {
-  width: 8px;
-  height: 8px;
+.waiting-modal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 32px;
+  background: linear-gradient(180deg, #3f0601 0%, #240800 100%);
+  border: 3px solid #8b6914;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(90, 0, 0, 0.8), inset 0 1px 0 rgba(255,210,100,0.1);
+  pointer-events: none;
+}
+
+.waiting-modal__pulse {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #f5dd81;
+  flex-shrink: 0;
   animation: pulse 1.4s ease-in-out infinite;
+}
+
+.waiting-modal__text {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #e8d5a3;
+  text-transform: uppercase;
 }
 
 @keyframes pulse {

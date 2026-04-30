@@ -7,7 +7,6 @@ const EMBER_COUNT = 8;
 
 function buildParticles(colorClass) {
   const particles = [];
-  // Round sparks
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const angle = (360 / PARTICLE_COUNT) * i + Math.random() * 15;
     const dist = 28 + Math.random() * 32;
@@ -16,14 +15,13 @@ function buildParticles(colorClass) {
     const ty = Math.sin(rad) * dist;
     const dur = 0.45 + Math.random() * 0.25;
     const delay = Math.random() * 0.08;
-    // Alternating colors: primary, light, white
     const colors = colorClass === "red"
       ? ["#e04040", "#ff8080", "#ffdddd", "#ff4400"]
       : colorClass === "blue"
         ? ["#4080e0", "#80b4ff", "#ddeeff", "#40c0ff"]
         : colorClass === "flag"
           ? ["#f5dd81", "#ffe066", "#fff5cc", "#ffaa00"]
-          : ["#e0a020", "#ffcc44", "#ffeeaa", "#ff6600"]; // both
+          : ["#e0a020", "#ffcc44", "#ffeeaa", "#ff6600"];
     const bg = colors[i % colors.length];
     particles.push(
       <div
@@ -40,7 +38,6 @@ function buildParticles(colorClass) {
       />
     );
   }
-  // Ember streaks
   for (let i = 0; i < EMBER_COUNT; i++) {
     const angle = (360 / EMBER_COUNT) * i + Math.random() * 20;
     const dist = 22 + Math.random() * 28;
@@ -72,26 +69,16 @@ function buildParticles(colorClass) {
 }
 
 /* ─── ExplosionOverlay ────────────────────────────────────── */
-/**
- * Renders an explosion centred on the grid tile at (boardX, boardY).
- * The board is a 10×10 CSS grid; we use percentage-based positioning.
- * boardX = row index (0–9), boardY = col index (0–9)
- * playerColor tells us if the board is flipped (BLUE sees reversed rows).
- */
 function ExplosionOverlay({ explosion, displayBoard }) {
   if (!explosion) return null;
 
   const { boardX, boardY, colorClass } = explosion;
-
-  // Find the tile in the displayBoard flat array — the grid renders tiles
-  // in array order, so the index directly maps to (row, col) in the display grid.
   const idx = displayBoard.findIndex(s => s.x === boardX && s.y === boardY);
   if (idx === -1) return null;
 
   const displayRow = Math.floor(idx / 10);
   const displayCol = idx % 10;
 
-  // Centre of the tile in percent (board is 10×10)
   const left = `${(displayCol / 10) * 100 + 5}%`;
   const top = `${(displayRow / 10) * 100 + 5}%`;
 
@@ -110,7 +97,43 @@ function ExplosionOverlay({ explosion, displayBoard }) {
   );
 }
 
-/* ─── GameBoard ───────────────────────────────────────────── */
+function StatusUpdate({ messages }) {
+  const [visible, setVisible] = useState(false);
+  const [currentMsg, setCurrentMsg] = useState(null);
+  const hideTimer = useRef(null);
+
+  useEffect(() => {
+    if (!messages || messages.length === 0) return;
+    const latest = messages[0];
+    if (!latest) return;
+
+    const text = latest.text || "";
+    if (text.includes("Flag") || text.includes("flag")) return;
+
+    clearTimeout(hideTimer.current);
+
+    setCurrentMsg(latest);
+    setVisible(true);
+
+    hideTimer.current = setTimeout(() => {
+      setVisible(false);
+    }, 2800);
+
+    return () => clearTimeout(hideTimer.current);
+  }, [messages]);
+
+  if (!currentMsg) return null;
+
+  return (
+    <div
+      className={`status-update ${visible ? "status-update--visible" : "status-update--hidden"}`}
+      aria-live="polite"
+    >
+      <span className="status-update__text">{currentMsg.text}</span>
+    </div>
+  );
+}
+
 export default function GameBoard({
   activeLobby,
   gamePhase,
@@ -129,7 +152,7 @@ export default function GameBoard({
   setupComplete,
   handleSquareClick,
   onReturnToLobby,
-  lastBattle,           // NEW — passed from App.jsx
+  lastBattle,
   onDragStart,
   onDrop
 }) {
@@ -137,26 +160,21 @@ export default function GameBoard({
   const explosionTimer = useRef(null);
   const [dragOverKey, setDragOverKey] = useState(null);
 
-  /* Watch lastBattle and fire explosion at the defender's position */
   useEffect(() => {
     if (!lastBattle) return;
 
-    // lastBattle must include toX / toY (defender coords)
     const { result, attackerColor, defenderColor, toX, toY } = lastBattle;
     if (toX == null || toY == null) return;
 
-    // Determine explosion colour theme
     let colorClass;
     if (result === "FLAG_CAPTURED") colorClass = "flag";
     else if (result === "BOTH_DIE") colorClass = "both";
     else if (result === "ATTACKER_WINS") colorClass = defenderColor?.toLowerCase() ?? "red";
     else colorClass = attackerColor?.toLowerCase() ?? "blue";
 
-    // Clear any previous explosion immediately
     clearTimeout(explosionTimer.current);
     setExplosion(null);
 
-    // Small timeout so React re-mounts the animation even for back-to-back battles
     requestAnimationFrame(() => {
       setExplosion({ boardX: toX, boardY: toY, colorClass });
       explosionTimer.current = setTimeout(() => setExplosion(null), 900);
@@ -166,6 +184,9 @@ export default function GameBoard({
   return (
     <div className="board-wrapper">
       {error && <div className="error-toast">{error}</div>}
+
+      {/* Status Update Popup */}
+      <StatusUpdate messages={messages} />
 
       {/* Game Over Overlay */}
       {gameOver && (
@@ -189,13 +210,15 @@ export default function GameBoard({
 
       {/* Status Bar */}
       <div className="status-bar">
-        <div className="status-info">
-          <button className="lobby-back-btn" onClick={onReturnToLobby}>
-            ⌂ Lobby
-          </button>
+        <button className="lobby-back-btn" onClick={onReturnToLobby}>
+          ⌂ Lobby
+        </button>
+
+        <div className="status-bar__center">
           <span className="status-center-text">
             Lobby: <strong>{activeLobby}</strong>
           </span>
+          <span className="status-bar__divider" />
           {gamePhase === "SETUP" && (
             <span className="status-center-text">
               <strong>Setup Phase</strong>
@@ -207,23 +230,17 @@ export default function GameBoard({
             </span>
           )}
         </div>
-
-        {setupComplete && gamePhase === "SETUP" && (
-          <div className="setup-waiting">
-            <div className="setup-waiting__pulse" />
-            Waiting for opponent…
-          </div>
-        )}
-
-        <div className="status-messages status-messages--centered">
-          {messages.length > 0 &&
-            messages.map((m, i) => (
-              <span key={m.id} className={`status-msg ${i === 0 ? "status-msg-latest" : ""}`}>
-                {m.text}
-              </span>
-            ))}
-        </div>
       </div>
+
+      {/* Waiting for Opponent Overlay */}
+      {setupComplete && gamePhase === "SETUP" && (
+        <div className="waiting-overlay">
+          <div className="waiting-modal">
+            <div className="waiting-modal__pulse" />
+            <span className="waiting-modal__text">Waiting for opponent…</span>
+          </div>
+        </div>
+      )}
 
       {/* The Physical Board */}
       <div className="board-bg" style={{ position: "relative" }}>
@@ -264,10 +281,7 @@ export default function GameBoard({
                 <div
                   className="piece-draggable-wrapper"
                   draggable={gamePhase === "SETUP" || (gamePhase === "PLAY" && turn === playerColor)}
-
-                  onDragStart={(e) => 
-                    onDragStart(e, space)
-                  }
+                  onDragStart={(e) => onDragStart(e, space)}
                 >
                   <div className="piece-container" style={{ pointerEvents: 'none' }}>
                     <Piece owner={space.piece.owner} rank={space.piece.rank} />
@@ -278,7 +292,7 @@ export default function GameBoard({
           );
         })}
 
-        {/* Explosion overlay — renders on top of all tiles */}
+        {/* Explosion overlay */}
         <ExplosionOverlay explosion={explosion} displayBoard={displayBoard} />
       </div>
     </div>
