@@ -97,7 +97,7 @@ class Board {
     return availableMoves;
   }
 
-  // Returns true if givenn move is valid
+  // Returns true if given move is valid
   validateMove(currentSpace, possibleSpace){
     if (!possibleSpace) return false;
     

@@ -55,7 +55,7 @@
 
 .lobby-card__header {
   padding: 0 0 16px 0;
-  border-bottom: 2px solid rgba(139,105,20,0.5);
+  border-bottom: 2px solid rgba(245, 221, 121,0.5);
   background: transparent;
   text-align: center;
   position: relative;
@@ -68,7 +68,7 @@
   left: 0;
   font-size: 16px;
   opacity: 0.5;
-  color: #8b6914;
+  color: #f5dd81;
 }
 
 .lobby-card__header::after {
@@ -78,7 +78,7 @@
   right: 0;
   font-size: 16px;
   opacity: 0.5;
-  color: #8b6914;
+  color: #f5dd81;
   transform: scaleX(-1);
 }
 
@@ -169,9 +169,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: rgba(139,105,20,0.5);
+  color: rgba(245, 222, 132);
   font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
