@@ -445,8 +445,3 @@
 }
 
 .handoff-ready-btn:hover { background: #3a9e3a; }
-
-.join-btn.hotseat {
-  background: linear-gradient(135deg, #4a3080, #7040c0);
-}
-.join-btn.hotseat:hover { background: linear-gradient(135deg, #5a40a0, #8050e0); }

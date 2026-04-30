@@ -83,6 +83,14 @@ export default function LobbyPage({
 
                 <div className="lobby-divider">or</div>
 
+                <button
+                  className="join-btn primary"
+                  onClick={handleCreateGame}
+                  disabled={isCreating}
+                >
+                  {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
+                </button>
+
                 <div className="beginner-mode-toggle">
                   <label className="toggle-label">
                     <input
@@ -101,14 +109,7 @@ export default function LobbyPage({
                       : "Revealed pieces hide after each turn, old battle log entries are hidden"}
                   </p>
                 </div>
-
-                <button
-                  className="join-btn primary"
-                  onClick={handleCreateGame}
-                  disabled={isCreating}
-                >
-                  {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
-                </button>
+                
                 <button
                   className="join-btn hotseat"
                   onClick={handleCreateHotseat}

@@ -42,8 +42,16 @@ export function useGame(lobbyCode, playerColor, onJoinError, isHotseat = false) 
   const { user } = useAuth();
 
   const lastMoveDestRef = useRef(null);
+  const playerColorRef = useRef(playerColor);
   // Second socket for hotseat BLUE player — created once and reused
   const blueSocketRef = useRef(null);
+
+  useEffect(() => {
+    playerColorRef.current = playerColor;
+    // Clear board immediately so stale perspective isn't visible
+    setBoard([]);
+    setLastBattle(null);
+  }, [playerColor]);
 
   // Returns whichever socket is active for the current playerColor
   const getActiveSocket = () => {
@@ -130,19 +138,21 @@ export function useGame(lobbyCode, playerColor, onJoinError, isHotseat = false) 
       }
     };
 
-    primarySocket.on("gameStateUpdate", handleGameState);
+    primarySocket.on("gameStateUpdate", (state) => {
+      if (!isHotseat || playerColorRef.current === "RED") handleGameState(state);
+    });
     activeSocket.on("availableMovesUpdate", handleAvailableMoves);
     activeSocket.on("moveResult", handleMoveResult);
     activeSocket.on("error", handleError);
 
     if (blueSocketRef.current) {
       blueSocketRef.current.on("gameStateUpdate", (state) => {
-        if (playerColor === "BLUE") handleGameState(state);
+        if (playerColorRef.current === "BLUE") handleGameState(state);
       });
     }
 
     return () => {
-      primarySocket.off("gameStateUpdate", handleGameState);
+      primarySocket.off("gameStateUpdate");
       activeSocket.off("availableMovesUpdate", handleAvailableMoves);
       activeSocket.off("moveResult", handleMoveResult);
       activeSocket.off("error", handleError);

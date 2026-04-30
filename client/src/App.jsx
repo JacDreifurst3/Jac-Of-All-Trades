@@ -102,6 +102,7 @@ const handleCreateHotseat = async () => {
 
 
   const handleCreateGame = async () => {
+    console.log("handleCreateGame called");
     setIsCreating(true);
     setLobbyError(null);
     setIsHotseat(false);
@@ -122,6 +123,7 @@ const handleCreateHotseat = async () => {
   };
 
   const handleJoinLobby = async () => {
+    console.log("handleJoinLobby called");
     setLobbyError(null);
     if (!lobbyInput.trim()) {
       setLobbyError("Please enter a lobby code");
@@ -180,8 +182,8 @@ const handleCreateHotseat = async () => {
     if (!isHotseat || gamePhase !== "PLAY" || handoffPending) return;
     if (turn !== playerColor) {
       setHandoffNextColor(turn);
-      setHandoffPending(true);
-    }
+      setTimeout(() => setHandoffPending(true), 950);
+    } 
   }, [turn, isHotseat, gamePhase]);
 
   
@@ -438,10 +440,13 @@ if (handoffPending) {
         <button
           className="handoff-ready-btn"
           onClick={() => {
-            setPlayerColor(handoffNextColor);
-            sessionStorage.setItem("playerColor", handoffNextColor);
-            setHandoffPending(false);
+            const next = handoffNextColor;
             setHandoffNextColor(null);
+            setBattleEvent(null);
+            setPlayerColor(next);
+            sessionStorage.setItem("playerColor", next);
+            // Small delay so board re-renders with correct perspective before uncovering
+            setTimeout(() => setHandoffPending(false), 50);
           }}
         >
           I'm Ready
