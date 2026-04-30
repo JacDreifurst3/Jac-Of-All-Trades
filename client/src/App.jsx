@@ -179,7 +179,7 @@ const handleCreateHotseat = async () => {
   }, [gameOver]);
 
   useEffect(() => {
-    if (!isHotseat || gamePhase !== "PLAY" || handoffPending) return;
+    if (!isHotseat || gamePhase !== "PLAY" || handoffPending || gameOver) return;
     if (turn !== playerColor) {
       setHandoffNextColor(turn);
       setTimeout(() => setHandoffPending(true), 950);

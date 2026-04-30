@@ -88,7 +88,8 @@ const gameService = {
                 });
             }
 
-            if (blueUID) {
+            // Skip BLUE stats update if same user as RED (hotseat mode)
+            if (blueUID && blueUID !== redUID) {
                 await User.findByIdAndUpdate(blueUID, {
                     $inc: {
                         gamesPlayed: 1,
