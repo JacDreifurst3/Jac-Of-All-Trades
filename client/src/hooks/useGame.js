@@ -17,7 +17,7 @@ socket.on("connect", () => {
   console.log("Successfully connected to Socket.io server!");
 });
 
-export function useGame(lobbyCode, playerColor, onJoinError) {
+export function useGame(lobbyCode, playerColor, onJoinError, isHotseat = false) {
   const [board, setBoard] = useState([]);
   const [turn, setTurn] = useState('RED');
   const [error, setError] = useState(null);
@@ -43,8 +43,10 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
   useEffect(() => {
     if (!lobbyCode) return;
 
-    socket.emit("joinGame", { lobbyCode, playerColor, uid: user?.uid });
-
+  socket.emit("joinGame", { lobbyCode, playerColor, uid: user?.uid, isHotseat });
+    if (isHotseat && playerColor === "RED") {
+      socket.emit("joinGame", { lobbyCode, playerColor: "BLUE", uid: user?.uid, isHotseat });
+    }
     socket.on("gameStateUpdate", (state) => {
       setBoard(state.board ? state.board.flat() : []);
       setTurn(state.currentPlayer);
@@ -97,6 +99,11 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     };
   }, [lobbyCode]);
 
+  useEffect(() => {
+    setSetupComplete(false);
+    setShowConfirmation(false);
+  }, [playerColor]);
+
   const sendMove = (fromX, fromY, toX, toY) => {
     // Remember where this move is going so moveResult can use it
     lastMoveDestRef.current = { toX, toY };
@@ -128,6 +135,10 @@ export function useGame(lobbyCode, playerColor, onJoinError) {
     setSelectedPiece(null);
   };
 
+  const rejoinAs = (newColor) => {
+    socket.emit("joinGame", { lobbyCode, playerColor: newColor, uid: user?.uid, isHotseat: true });
+  };
 
-  return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog, beginnerMode };
+
+  return { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog, beginnerMode, rejoinAs };
 }

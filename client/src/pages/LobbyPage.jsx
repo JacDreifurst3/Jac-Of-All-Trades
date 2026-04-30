@@ -20,7 +20,8 @@ export default function LobbyPage({
   gamePhase,
   setActiveLobby,
   beginnerMode,
-  setBeginnerMode
+  setBeginnerMode,
+  handleCreateHotseat
 }) {
   const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
 
@@ -107,6 +108,13 @@ export default function LobbyPage({
                   disabled={isCreating}
                 >
                   {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
+                </button>
+                <button
+                  className="join-btn hotseat"
+                  onClick={handleCreateHotseat}
+                  disabled={isCreating}
+                >
+                  Hotseat (Same Device)
                 </button>
               </div>
             </>
