@@ -135,6 +135,7 @@ export default function GameBoard({
 }) {
   const [explosion, setExplosion] = useState(null);
   const explosionTimer = useRef(null);
+  const [dragOverKey, setDragOverKey] = useState(null);
 
   /* Watch lastBattle and fire explosion at the defender's position */
   useEffect(() => {
@@ -252,9 +253,11 @@ export default function GameBoard({
               className={`tile ${space.terrain === "WATER" ? "lake" : "grass"}
                 ${isSelected || isSetupSelected ? "selected" : ""}
                 ${isValidDestination ? "valid-destination" : ""}
-                ${isSetupValid ? "setup-valid" : ""}`}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => onDrop(e, space)}
+                ${isSetupValid ? "setup-valid" : ""}
+                ${dragOverKey === `${space.x},${space.y}` ? "drag-over" : ""}`}
+              onDragOver={(e) => { e.preventDefault(); if (isValidDestination || isSetupValid) setDragOverKey(`${space.x},${space.y}`); }}
+              onDragLeave={() => setDragOverKey(null)}
+              onDrop={(e) => { setDragOverKey(null); onDrop(e, space); }}
               onClick={() => handleSquareClick(space)}
             >
               {space.piece && (
