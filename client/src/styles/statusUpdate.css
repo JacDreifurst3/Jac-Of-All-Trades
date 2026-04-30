@@ -1,0 +1,43 @@
+/*
+   status update toast
+*/
+.status-update {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-12px);
+    z-index: 9999;
+    padding: 10px 22px;
+    background: linear-gradient(180deg, #3f0601 0%, #240800 100%);
+    border: 2px solid #8b6914;
+    border-radius: 4px;
+    box-shadow: 0 6px 24px rgba(90, 0, 0, 0.7), inset 0 1px 0 rgba(255,210,100,0.1);
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #f5cc6a;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+  }
+  
+  .status-update--visible {
+    animation: status-update-life 2.8s ease forwards;
+  }
+  
+  .status-update--hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px);
+  }
+  
+  @keyframes status-update-life {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    12%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    75%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  }
+  
+  .status-update__text {
+    letter-spacing: 0.08em;
+  }
