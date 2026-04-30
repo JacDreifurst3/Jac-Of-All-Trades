@@ -97,7 +97,6 @@ function ExplosionOverlay({ explosion, displayBoard }) {
   );
 }
 
-/* ─── StatusUpdate ────────────────────────────────────────── */
 function StatusUpdate({ messages }) {
   const [visible, setVisible] = useState(false);
   const [currentMsg, setCurrentMsg] = useState(null);
@@ -109,7 +108,6 @@ function StatusUpdate({ messages }) {
     if (!latest) return;
 
     const text = latest.text || "";
-    // Don't show toast for flag capture — the game over screen handles that
     if (text.includes("Flag") || text.includes("flag")) return;
 
     clearTimeout(hideTimer.current);
@@ -136,7 +134,6 @@ function StatusUpdate({ messages }) {
   );
 }
 
-/* ─── GameBoard ───────────────────────────────────────────── */
 export default function GameBoard({
   activeLobby,
   gamePhase,

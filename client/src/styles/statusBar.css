@@ -85,6 +85,7 @@
 
 .status-center-text {
   text-align: center;
+  white-space: nowrap;
 }
 
 
