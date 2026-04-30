@@ -104,7 +104,7 @@ export function SetupInfoSidebar({ playerColor, selectedRank, setupComplete }) {
   const hints = setupComplete ? [] : [
     "Select a piece from the left, then click your zone.",
     "Click an empty tile in your zone to place.",
-    "Click another tile to move or swap.",
+    "Click or drag to another tile to move or swap.",
   ];
 
   const PIECE_TIPS = {
