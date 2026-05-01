@@ -20,7 +20,8 @@ export default function LobbyPage({
   gamePhase,
   setActiveLobby,
   beginnerMode,
-  setBeginnerMode
+  setBeginnerMode,
+  handleCreateHotseat
 }) {
   const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
 
@@ -82,6 +83,14 @@ export default function LobbyPage({
 
                 <div className="lobby-divider">or</div>
 
+                <button
+                  className="join-btn primary"
+                  onClick={handleCreateGame}
+                  disabled={isCreating}
+                >
+                  {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
+                </button>
+
                 <div className="beginner-mode-toggle">
                   <label className="toggle-label">
                     <input
@@ -100,13 +109,13 @@ export default function LobbyPage({
                       : "Revealed pieces hide after each turn, old battle log entries are hidden"}
                   </p>
                 </div>
-
+                
                 <button
-                  className="join-btn primary"
-                  onClick={handleCreateGame}
+                  className="join-btn hotseat"
+                  onClick={handleCreateHotseat}
                   disabled={isCreating}
                 >
-                  {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
+                  Hotseat (Same Device)
                 </button>
               </div>
             </>

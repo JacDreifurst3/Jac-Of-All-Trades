@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     // Player joins or rejoins a lobby — creates game if it doesn't exist, restores from MongoDB if it does
-    socket.on("joinGame", async ({ lobbyCode, playerColor, uid }) => {
+    socket.on("joinGame", async ({ lobbyCode, playerColor, uid, isHotseat }) => {
         try {
             // First check if game exists in MongoDB (for existing games)
             const existingGameDoc = await GameModel.findOne({ lobbyCode, status: { $ne: 'FINISHED' } });
@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
 
             // Allow rejoin if same UID, block if different player trying to take the color
             if (existingSocketId && existingSocketId !== socket.id) {
-                if (existingUID && existingUID !== uid) {
+                if (existingUID && existingUID !== uid && !isHotseat) {
                     console.log(`BLOCKED: ${socket.id} tried to join as ${playerColor}`);
                     socket.emit("error", `Color ${playerColor} is already taken in lobby ${lobbyCode}.`);
                     return;

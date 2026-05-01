@@ -33,6 +33,11 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isHotseat, setIsHotseat] = useState(
+    () => sessionStorage.getItem("isHotseat") === "true"
+  );
+  const [handoffPending, setHandoffPending] = useState(false);
+  const [handoffNextColor, setHandoffNextColor] = useState(null);
   const [beginnerMode, setBeginnerMode] = useState(true);
   useEffect(() => {
     const savedLobby = sessionStorage.getItem("activeLobby");
@@ -59,12 +64,31 @@ export default function App() {
     verifyColor();
 }, [user]);
 
+const handleCreateHotseat = async () => {
+  setIsCreating(true);
+  setLobbyError(null);
+  try {
+    const response = await axios.post('http://localhost:5001/api/games/create', { beginnerMode });
+    const { lobbyCode } = response.data;
+    sessionStorage.setItem("activeLobby", lobbyCode);
+    sessionStorage.setItem("playerColor", "RED");
+    sessionStorage.setItem("isHotseat", "true");
+    setPlayerColor("RED");
+    setIsHotseat(true);
+    setActiveLobby(lobbyCode);
+  } catch (err) {
+    setLobbyError("Failed to connect to server.");
+  } finally {
+    setIsCreating(false);
+  }
+};
+
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog, beginnerMode: serverBeginnerMode} = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
     setActiveLobby(null);
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
-  });
+  }, isHotseat);
 
   const [messages, setMessages] = useState([]);
   const [selectedRank, setSelectedRank] = useState(null);
@@ -78,8 +102,11 @@ export default function App() {
 
 
   const handleCreateGame = async () => {
+    console.log("handleCreateGame called");
     setIsCreating(true);
     setLobbyError(null);
+    setIsHotseat(false);
+    sessionStorage.removeItem("isHotseat");
     try {
       const response = await axios.post('http://localhost:5001/api/games/create', { beginnerMode });
       const { lobbyCode } = response.data;
@@ -96,6 +123,7 @@ export default function App() {
   };
 
   const handleJoinLobby = async () => {
+    console.log("handleJoinLobby called");
     setLobbyError(null);
     if (!lobbyInput.trim()) {
       setLobbyError("Please enter a lobby code");
@@ -149,6 +177,16 @@ export default function App() {
 
       return () => clearTimeout(timer);
   }, [gameOver]);
+
+  useEffect(() => {
+    if (!isHotseat || gamePhase !== "PLAY" || handoffPending || gameOver) return;
+    if (turn !== playerColor) {
+      setHandoffNextColor(turn);
+      setTimeout(() => setHandoffPending(true), 950);
+    } 
+  }, [turn, isHotseat, gamePhase]);
+
+  
 
  const [battleEvent, setBattleEvent] = useState(null);
 
@@ -323,6 +361,7 @@ if (!user) return <LoginPage />;
       setLobbyError={setLobbyError}
       handleJoinLobby={handleJoinLobby}
       handleCreateGame={handleCreateGame}
+      handleCreateHotseat={handleCreateHotseat}
       isCreating={isCreating}
       activeLobby={activeLobby}
       gamePhase={gamePhase}
@@ -391,6 +430,32 @@ if (!user) return <LoginPage />;
     }
   };
 
+if (handoffPending) {
+  return (
+    <div className="handoff-screen">
+      <div className="handoff-modal">
+        <div className="handoff-icon">🔒</div>
+        <h2>Pass the Device</h2>
+        <p>Hand the device to <strong className={handoffNextColor?.toLowerCase()}>{handoffNextColor}</strong></p>
+        <button
+          className="handoff-ready-btn"
+          onClick={() => {
+            const next = handoffNextColor;
+            setHandoffNextColor(null);
+            setBattleEvent(null);
+            setPlayerColor(next);
+            sessionStorage.setItem("playerColor", next);
+            // Small delay so board re-renders with correct perspective before uncovering
+            setTimeout(() => setHandoffPending(false), 50);
+          }}
+        >
+          I'm Ready
+        </button>
+      </div>
+    </div>
+  );
+}
+
   return (
 <div className="game-layout">
   {profileCorner}
@@ -411,7 +476,14 @@ if (!user) return <LoginPage />;
       setupComplete={setupComplete}
       showConfirmation={showConfirmation}
       randomizeLayout={randomizeLayout}
-      markSetupComplete={markSetupComplete}
+      markSetupComplete={() => {
+        markSetupComplete();
+        if (isHotseat) {
+          const next = playerColor === "RED" ? "BLUE" : "RED";
+          setHandoffNextColor(next);
+          setHandoffPending(true);
+        }
+      }}
       playerColor={playerColor}
     />
   ) : (
@@ -439,7 +511,9 @@ if (!user) return <LoginPage />;
   onReturnToLobby={() => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
+    sessionStorage.removeItem("isHotseat");
     setActiveLobby(null);
+    setIsHotseat(false);
   }}
   onDragStart={handleDragStart}
   onDrop={handleDrop}
