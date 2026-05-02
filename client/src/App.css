@@ -1,3 +1,4 @@
+/* This file pulls all the separate CSS files into the main app. */
 @import './styles/global.css';
 @import './styles/gameBoard.css';
 @import './styles/statusBar.css';

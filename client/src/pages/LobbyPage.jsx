@@ -23,8 +23,10 @@ export default function LobbyPage({
   setBeginnerMode,
   handleCreateHotseat
 }) {
+  // True while the lobby exists but no opponent has joined yet
   const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
 
+  // Fixed avatar button in the top corner — shows profile pic or initial fallback
   const profileCorner = (
     <>
       <button onClick={() => setShowProfile(true)} className="profile-btn profile-btn--fixed">
@@ -58,6 +60,7 @@ export default function LobbyPage({
 
       <div className="setup-controls">
         <div className="lobby-card">
+          {/* Switch between main lobby UI and the "waiting for opponent" state */}
           {!isWaitingForOpponent ? (
             <>
               <div className="lobby-card__header">
@@ -65,6 +68,7 @@ export default function LobbyPage({
               </div>
 
               <div className="lobby-card__body">
+                {/* Join an existing game by code */}
                 <div className="lobby-input-group">
                   <div className="lobby-section-label">Join an existing game</div>
                   <input
@@ -83,6 +87,7 @@ export default function LobbyPage({
 
                 <div className="lobby-divider">or</div>
 
+                {/* Create a new online lobby — disabled while the request is in flight */}
                 <button
                   className="join-btn primary"
                   onClick={handleCreateGame}
@@ -91,6 +96,7 @@ export default function LobbyPage({
                   {isCreating ? "Assembling troops…" : "✦ Create New Lobby"}
                 </button>
 
+                {/* Beginner mode: pieces stay revealed, full battle history shown */}
                 <div className="beginner-mode-toggle">
                   <label className="toggle-label">
                     <input
@@ -110,6 +116,7 @@ export default function LobbyPage({
                   </p>
                 </div>
                 
+                {/* Local two-player mode on the same device */}
                 <button
                   className="join-btn hotseat"
                   onClick={handleCreateHotseat}
@@ -120,6 +127,7 @@ export default function LobbyPage({
               </div>
             </>
           ) : (
+            /* Shown after creating a lobby — displays the shareable code */
             <div className="lobby-card__body">
               <div className="waiting-container">
                 <h1>Lobby Created!</h1>
