@@ -1,5 +1,7 @@
 import React from "react";
 import { PieceIcon } from "./Pieces.jsx";
+
+// Display order: strongest pieces first, immovables (Bomb, Flag) last
 const RANK_ORDER = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 0];
 
 const RANK_NAMES = {
@@ -10,17 +12,19 @@ const RANK_NAMES = {
 
 const rankName = (rank) => RANK_NAMES[rank] ?? `Rank ${rank}`;
 
-export function SetupSidebar({ 
-  availablePieces, 
-  selectedRank, 
-  setSelectedRank, 
-  setSelectedSetupSlot, 
-  setupComplete, 
-  showConfirmation, 
-  randomizeLayout, 
-  markSetupComplete, 
-  playerColor 
+// Left sidebar — lets the player pick a piece rank to place on the board
+export function SetupSidebar({
+  availablePieces,
+  selectedRank,
+  setSelectedRank,
+  setSelectedSetupSlot,
+  setupComplete,
+  showConfirmation,
+  randomizeLayout,
+  markSetupComplete,
+  playerColor
 }) {
+  // Sum of all unplaced pieces — drives the progress bar
   const totalLeft = Object.values(availablePieces).reduce((a, b) => a + b, 0);
 
   return (
@@ -33,6 +37,7 @@ export function SetupSidebar({
         </div>
       </div>
 
+      {/* Progress bar fills as pieces are placed (inverted: fills left-to-right as count drops) */}
       <div className="setup-sidebar__counter">
         <span className="setup-counter__num">{totalLeft}</span>
         <span className="setup-counter__label">pieces remaining</span>
@@ -48,12 +53,13 @@ export function SetupSidebar({
         {RANK_ORDER.map((r) => {
           const count = availablePieces[r] ?? 0;
           const isSelected = selectedRank === r;
-          const depleted = count === 0;
+          const depleted = count === 0; // no more of this rank to place
           return (
             <button
               key={r}
               className={`setup-piece-card ${isSelected ? "selected" : ""} ${depleted ? "depleted" : ""} ${playerColor.toLowerCase()}`}
               onClick={() => {
+                // Toggle selection; also clear any board slot selection to avoid conflicts
                 setSelectedRank(isSelected ? null : r);
                 setSelectedSetupSlot(null);
               }}
@@ -81,7 +87,7 @@ export function SetupSidebar({
             className="setup-action-btn setup-action-btn--random"
             onClick={() => {
               randomizeLayout();
-              setSelectedRank(null);
+              setSelectedRank(null);      // clear UI state after randomizing
               setSelectedSetupSlot(null);
             }}
           >
@@ -89,6 +95,7 @@ export function SetupSidebar({
             Randomize
           </button>
         )}
+        {/* Confirm button only appears once all 40 pieces are placed */}
         {showConfirmation && !setupComplete && (
           <button className="setup-action-btn setup-action-btn--confirm" onClick={markSetupComplete}>
             <span className="setup-action-btn__icon">✓</span>
@@ -100,7 +107,9 @@ export function SetupSidebar({
   );
 }
 
+// Right sidebar — shows placement hints and a tip for each piece type
 export function SetupInfoSidebar({ playerColor, selectedRank, setupComplete }) {
+  // Hide hints once setup is locked in
   const hints = setupComplete ? [] : [
     "Select a piece from the left, then click your zone.",
     "Click an empty tile in your zone to place.",
@@ -138,6 +147,7 @@ export function SetupInfoSidebar({ playerColor, selectedRank, setupComplete }) {
 
       <div className="setup-tips">
         {RANK_ORDER.map((r) => (
+          // Highlighted when the player has that rank selected in the left sidebar
           <div
             key={r}
             className={`setup-tip-row ${selectedRank === r ? "highlighted" : ""} ${r === 0 || r === 11 ? "special" : ""}`}

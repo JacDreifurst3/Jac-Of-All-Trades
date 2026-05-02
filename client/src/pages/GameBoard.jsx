@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Piece } from "../components/BattleLogs.jsx";
 
-/* ─── Explosion particle data ─────────────────────────────── */
+/*  Explosion particle data */
 const PARTICLE_COUNT = 12;
 const EMBER_COUNT = 8;
 
+// Generates animated explosion particles and embers for a given color theme
 function buildParticles(colorClass) {
   const particles = [];
+
+  // Main burst particles — spread radially from explosion center
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const angle = (360 / PARTICLE_COUNT) * i + Math.random() * 15;
     const dist = 28 + Math.random() * 32;
@@ -15,6 +18,8 @@ function buildParticles(colorClass) {
     const ty = Math.sin(rad) * dist;
     const dur = 0.45 + Math.random() * 0.25;
     const delay = Math.random() * 0.08;
+
+    // Color palette varies by which team/outcome triggered the explosion
     const colors = colorClass === "red"
       ? ["#e04040", "#ff8080", "#ffdddd", "#ff4400"]
       : colorClass === "blue"
@@ -38,6 +43,8 @@ function buildParticles(colorClass) {
       />
     );
   }
+
+  // Ember streaks — thinner and slightly delayed for a trailing fire effect
   for (let i = 0; i < EMBER_COUNT; i++) {
     const angle = (360 / EMBER_COUNT) * i + Math.random() * 20;
     const dist = 22 + Math.random() * 28;
@@ -68,11 +75,14 @@ function buildParticles(colorClass) {
   return particles;
 }
 
-/* ─── ExplosionOverlay ────────────────────────────────────── */
+/*  ExplosionOverlay */
+// Positions the explosion effect over the correct board square
 function ExplosionOverlay({ explosion, displayBoard }) {
   if (!explosion) return null;
 
   const { boardX, boardY, colorClass } = explosion;
+
+  // Find the display index to convert board coords → CSS percentages
   const idx = displayBoard.findIndex(s => s.x === boardX && s.y === boardY);
   if (idx === -1) return null;
 
@@ -97,6 +107,8 @@ function ExplosionOverlay({ explosion, displayBoard }) {
   );
 }
 
+// Briefly shows a status message (e.g. "Red attacks Blue") — hides after ~2.8s
+// Skips flag-related messages since those are handled by the game-over overlay
 function StatusUpdate({ messages }) {
   const [visible, setVisible] = useState(false);
   const [currentMsg, setCurrentMsg] = useState(null);
@@ -115,6 +127,7 @@ function StatusUpdate({ messages }) {
     setCurrentMsg(latest);
     setVisible(true);
 
+    // Auto-hide after display duration
     hideTimer.current = setTimeout(() => {
       setVisible(false);
     }, 2800);
@@ -158,20 +171,23 @@ export default function GameBoard({
 }) {
   const [explosion, setExplosion] = useState(null);
   const explosionTimer = useRef(null);
-  const [dragOverKey, setDragOverKey] = useState(null);
+  const [dragOverKey, setDragOverKey] = useState(null); // tracks which tile is being dragged over
 
+  // Trigger an explosion whenever a new battle result arrives
   useEffect(() => {
     if (!lastBattle) return;
 
     const { result, attackerColor, defenderColor, toX, toY } = lastBattle;
     if (toX == null || toY == null) return;
 
+    // Pick explosion color based on who died (or "both" / "flag")
     let colorClass;
     if (result === "FLAG_CAPTURED") colorClass = "flag";
     else if (result === "BOTH_DIE") colorClass = "both";
     else if (result === "ATTACKER_WINS") colorClass = defenderColor?.toLowerCase() ?? "red";
     else colorClass = attackerColor?.toLowerCase() ?? "blue";
 
+    // Reset then re-trigger so re-battles on same square still animate
     clearTimeout(explosionTimer.current);
     setExplosion(null);
 
@@ -185,10 +201,9 @@ export default function GameBoard({
     <div className="board-wrapper">
       {error && <div className="error-toast">{error}</div>}
 
-      {/* Status Update Popup */}
       <StatusUpdate messages={messages} />
 
-      {/* Game Over Overlay */}
+      {/* Modal shown when the game ends */}
       {gameOver && (
         <div className="game-over-overlay">
           <div className="game-over-modal">
@@ -208,7 +223,7 @@ export default function GameBoard({
         </div>
       )}
 
-      {/* Status Bar */}
+      {/* Top bar — lobby name, phase, and whose turn it is */}
       <div className="status-bar">
         <button className="lobby-back-btn" onClick={onReturnToLobby}>
           ⌂ Lobby
@@ -232,7 +247,7 @@ export default function GameBoard({
         </div>
       </div>
 
-      {/* Waiting for Opponent Overlay */}
+      {/* Shown after this player finishes setup but the opponent hasn't yet */}
       {setupComplete && gamePhase === "SETUP" && (
         <div className="waiting-overlay">
           <div className="waiting-modal">
@@ -242,9 +257,10 @@ export default function GameBoard({
         </div>
       )}
 
-      {/* The Physical Board */}
+      {/* The board grid */}
       <div className="board-bg" style={{ position: "relative" }}>
         {displayBoard.map((space) => {
+          // Highlight squares the selected piece can legally move to
           const isValidDestination =
             selectedPiece &&
             availableMoves.some((move) => move.x === space.x && move.y === space.y);
@@ -254,11 +270,13 @@ export default function GameBoard({
           const isSetupSelected =
             selectedSetupSlot?.x === space.x && selectedSetupSlot?.y === space.y;
 
+          // Only the player's back 4 rows are valid during setup
           const inSetupZone =
             gamePhase === "SETUP" &&
             !setupComplete &&
             (playerColor === "RED" ? space.x >= 6 : space.x <= 3);
 
+          // A setup square is valid if placing a new piece (empty) or swapping own pieces
           const isSetupValid =
             inSetupZone &&
             ((selectedRank !== null && !space.piece) ||
@@ -280,6 +298,7 @@ export default function GameBoard({
               {space.piece && (
                 <div
                   className="piece-draggable-wrapper"
+                  // Only allow dragging on your turn (or during setup)
                   draggable={gamePhase === "SETUP" || (gamePhase === "PLAY" && turn === playerColor)}
                   onDragStart={(e) => onDragStart(e, space)}
                 >
@@ -292,7 +311,6 @@ export default function GameBoard({
           );
         })}
 
-        {/* Explosion overlay */}
         <ExplosionOverlay explosion={explosion} displayBoard={displayBoard} />
       </div>
     </div>

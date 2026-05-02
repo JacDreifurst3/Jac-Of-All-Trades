@@ -1,3 +1,4 @@
+// Main app file that controls login, lobby, setup, and the game board.
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./App.css";
@@ -20,6 +21,7 @@ import { rankName, rankLabel, toLayoutCoords } from "./utils/GameInfo.jsx";
 
 
 export default function App() {
+  // Basic screen and user state for the app.
   const [showCover, setShowCover] = useState(true);
   const { user, profile, setProfile } = useAuth();
   const [lobbyInput, setLobbyInput] = useState("");
@@ -39,6 +41,7 @@ export default function App() {
   const [handoffPending, setHandoffPending] = useState(false);
   const [handoffNextColor, setHandoffNextColor] = useState(null);
   const [beginnerMode, setBeginnerMode] = useState(true);
+  // Checks if the player already had a saved lobby open.
   useEffect(() => {
     const savedLobby = sessionStorage.getItem("activeLobby");
     if (!savedLobby || !user) return;
@@ -64,6 +67,7 @@ export default function App() {
     verifyColor();
 }, [user]);
 
+// Creates a same-device game where players pass the screen back and forth.
 const handleCreateHotseat = async () => {
   setIsCreating(true);
   setLobbyError(null);
@@ -83,6 +87,7 @@ const handleCreateHotseat = async () => {
   }
 };
 
+  // Pulls all the live game data and actions from the custom game hook.
   const { board, turn, error, sendMove, selectPiece, availableMoves, selectedPiece, clearSelection, lastBattle, setLastBattle, gamePhase, availablePieces, setupComplete, showConfirmation, setupLayout, placePiece, moveSetupPiece, randomizeLayout, markSetupComplete, gameOver, winner, winReason, battleLog, beginnerMode: serverBeginnerMode} = useGame(activeLobby, playerColor, () => {
     sessionStorage.removeItem("activeLobby");
     sessionStorage.removeItem("playerColor");
@@ -90,6 +95,7 @@ const handleCreateHotseat = async () => {
     setLobbyError(`Color ${playerColor} is already taken in this lobby.`);
   }, isHotseat);
 
+  // Tracks small messages and setup selections for the player.
   const [messages, setMessages] = useState([]);
   const [selectedRank, setSelectedRank] = useState(null);
   const [selectedSetupSlot, setSelectedSetupSlot] = useState(null);
@@ -101,6 +107,7 @@ const handleCreateHotseat = async () => {
 
 
 
+  // Creates a normal online lobby.
   const handleCreateGame = async () => {
     console.log("handleCreateGame called");
     setIsCreating(true);
@@ -122,6 +129,7 @@ const handleCreateHotseat = async () => {
     }
   };
 
+  // Joins a lobby using the code typed by the player.
   const handleJoinLobby = async () => {
     console.log("handleJoinLobby called");
     setLobbyError(null);
@@ -154,12 +162,14 @@ const handleCreateHotseat = async () => {
   };
 
   const isWaitingForOpponent = activeLobby && gamePhase === "WAITING";
+  // Shows backend/game errors as short messages.
   useEffect(() => {
     if (error) {
       setMessages(prev => [{ id: Date.now(), text: error }, ...prev].slice(0, 20));
     }
   }, [error]);
 
+  // Refreshes the user profile after the game ends so stats update.
   useEffect(() => {
       if (!gameOver || !user) return;
       // Wait 2 seconds for backend to finish saving stats before fetching
@@ -178,6 +188,7 @@ const handleCreateHotseat = async () => {
       return () => clearTimeout(timer);
   }, [gameOver]);
 
+  // In hotseat mode, hides the board before switching players.
   useEffect(() => {
     if (!isHotseat || gamePhase !== "PLAY" || handoffPending || gameOver) return;
     if (turn !== playerColor) {
@@ -188,8 +199,10 @@ const handleCreateHotseat = async () => {
 
   
 
+ // Stores the most recent battle so the board can animate it.
  const [battleEvent, setBattleEvent] = useState(null);
 
+ // Starts dragging a piece if it belongs to the current player.
  const handleDragStart = (e, space) => {
   if (!space.piece || space.piece.owner !== playerColor) {
     e.preventDefault();
@@ -205,6 +218,7 @@ const handleCreateHotseat = async () => {
   }
 };
 
+// Handles dropping a piece during setup or gameplay.
 const handleDrop = (e, targetSpace) => {
   e.preventDefault();
   const sourceX = parseInt(e.dataTransfer.getData("sourceX"));
@@ -233,6 +247,7 @@ const handleDrop = (e, targetSpace) => {
   document.querySelectorAll('.piece-draggable-wrapper').forEach(el => el.style.visibility = 'visible');
 };
 
+ // Builds a readable battle message after two pieces fight.
  useEffect(() => {
   if (!lastBattle) return;
 
@@ -259,6 +274,7 @@ const handleDrop = (e, targetSpace) => {
   setTimeout(() => setLastBattle(null), 100);
 }, [lastBattle, turn]);
 
+  // Turns the battle log into a list of captured pieces for the sidebar.
   const capturedPieces = battleLog.flatMap((e) => {
     const pieces = [];
     const atkDead = e.result === "DEFENDER_WINS" || e.result === "BOTH_DIE";
@@ -285,6 +301,7 @@ const handleDrop = (e, targetSpace) => {
     return pieces;
   });
 
+  // Adds setup pieces onto a copy of the board before showing it.
   const boardWithSetup = board.map((space) => ({ ...space }));
   if (gamePhase === "SETUP" && setupLayout.length > 0) {
     boardWithSetup.forEach((space) => {
@@ -306,8 +323,10 @@ const handleDrop = (e, targetSpace) => {
     });
   }
 
+  // Flips the board for blue so their side is easier to see.
   const displayBoard = playerColor === "BLUE" ? [...boardWithSetup].reverse() : boardWithSetup;
 
+// First screen the player sees before entering the app.
 if (showCover) {
   return (
     <div className="cover-screen" onClick={() => setShowCover(false)}>
@@ -329,8 +348,10 @@ if (showCover) {
   );
 }
 
+// If no one is logged in yet, show the login page.
 if (!user) return <LoginPage />;
 
+  // Profile button that stays in the corner.
   const profileCorner = (
     <>
       <button onClick={() => setShowProfile(true)} className="profile-btn profile-btn--fixed">
@@ -347,6 +368,7 @@ if (!user) return <LoginPage />;
     </>
   );
 
+  // Shows the lobby page until the game is ready.
   if (!activeLobby || isWaitingForOpponent) {
   return (
     <LobbyPage
@@ -372,6 +394,7 @@ if (!user) return <LoginPage />;
   );
 }
 
+  // Handles clicking tiles for setup, selecting pieces, and moving pieces.
   const handleSquareClick = (space) => {
     if (gameOver) return;
     if (gamePhase === "SETUP") {
@@ -430,6 +453,7 @@ if (!user) return <LoginPage />;
     }
   };
 
+// Covers the board during hotseat handoff so players cannot peek.
 if (handoffPending) {
   return (
     <div className="handoff-screen">
@@ -456,6 +480,7 @@ if (handoffPending) {
   );
 }
 
+  // Main game screen once the lobby is active.
   return (
 <div className="game-layout">
   {profileCorner}
@@ -467,6 +492,7 @@ if (handoffPending) {
       {showRules && <RulesModal onClose={() => setShowRules(false)} />}
     </>
   )}
+  {/* Shows setup tools before the game starts, then battle log during play */}
   {gamePhase === "SETUP" ? (
     <SetupSidebar
       availablePieces={availablePieces}
@@ -490,6 +516,7 @@ if (handoffPending) {
     <BattleLog entries={battleLog} beginnerMode={serverBeginnerMode} />
   )}
 
+  {/* Main board component where pieces are displayed and moved */}
   <GameBoard
   activeLobby={activeLobby}
   gamePhase={gamePhase}
@@ -519,6 +546,7 @@ if (handoffPending) {
   onDrop={handleDrop}
 />
 
+  {/* Right sidebar changes depending on setup or play mode */}
   {gamePhase === "SETUP" ? (
     <SetupInfoSidebar playerColor={playerColor} selectedRank={selectedRank} selectedSetupSlot={selectedSetupSlot} setupComplete={setupComplete} />
   ) : (

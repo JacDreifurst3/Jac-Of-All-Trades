@@ -1,5 +1,6 @@
 import React from "react";
 
+// Clicking the overlay background closes the modal; clicking inside does not
 export default function RulesModal({ onClose }) {
   return (
     <div className="rules-overlay" onClick={onClose}>
@@ -36,6 +37,7 @@ export default function RulesModal({ onClose }) {
           </ol>
 
           <h3>Piece Rankings (High → Low)</h3>
+          {/* Rank, name, and count for each piece type */}
           <table className="rules-table">
             <thead><tr><th>Rank</th><th>Piece</th><th>Count</th></tr></thead>
             <tbody>
