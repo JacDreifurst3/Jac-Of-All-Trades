@@ -1,12 +1,12 @@
 /* This file pulls all the separate CSS files into the main app. */
-@import './styles/global.css';
-@import './styles/gameBoard.css';
-@import './styles/statusBar.css';
-@import './styles/battleLog.css';
-@import './styles/setupPanels.css';
-@import './styles/lobbyPage.css';
+@import './styles/Global.css';
+@import './styles/GameBoard.css';
+@import './styles/StatusBar.css';
+@import './styles/BattleLog.css';
+@import './styles/SetupPanels.css';
+@import './styles/LobbyPage.css';
 @import './styles/UI.css';
-@import './styles/explosion.css';
-@import './styles/statusUpdate.css';
+@import './styles/Explosion.css';
+@import './styles/StatusUpdate.css';
 
 
