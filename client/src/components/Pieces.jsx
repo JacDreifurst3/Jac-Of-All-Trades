@@ -1,4 +1,3 @@
-import { useState } from "react";
 import bomb from '../assets/bomb.png';
 import captain from '../assets/captain.png';
 import colonel from '../assets/colonel.png';
