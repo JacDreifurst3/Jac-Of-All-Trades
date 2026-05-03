@@ -15,7 +15,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:5173", 
+        origin: "http://localhost:5173",
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -37,7 +37,7 @@ io.on("connection", (socket) => {
         try {
             // First check if game exists in MongoDB (for existing games)
             const existingGameDoc = await GameModel.findOne({ lobbyCode, status: { $ne: 'FINISHED' } });
-            
+
             if (!await gameService.getGame(lobbyCode)) {
                 // Use beginnerMode from MongoDB if available, otherwise default to true
                 const beginnerMode = existingGameDoc?.beginnerMode ?? true;
@@ -72,7 +72,7 @@ io.on("connection", (socket) => {
             await gameService.assignPlayerUID(lobbyCode, playerColor, uid);
             socket.playerColor = playerColor;
             socket.lobbyCode = lobbyCode;
-          
+
             const redJoined = !!game.players['RED'].socketId;
             const blueJoined = !!game.players['BLUE'].socketId;
 
@@ -227,8 +227,32 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("disconnect", () => {
+    //deletes lobbys if both players disconnected for long enough
+    socket.on("disconnect", async () => {
         console.log(`User disconnected: ${socket.id}`);
+        const { lobbyCode, playerColor } = socket;
+        if (!lobbyCode) return;
+
+        if (lobbyCode) {
+            try {
+                const game = await gameService.getGame(lobbyCode);
+                if (game) {
+                    
+                    game.assignPlayer(playerColor, null);
+
+                    setTimeout(async () => {
+                        const remainingSockets = await io.in(lobbyCode).fetchSockets();
+
+                        if (remainingSockets.length === 0) {
+                            console.log(`Lobby ${lobbyCode} empty. Deleting...`);
+                            await gameService.deleteLobby(lobbyCode);
+                        }
+                    }, 60000);
+                }
+            } catch (err) {
+                console.error("Disconnect error:", err);
+            }
+        }
     });
 });
 
@@ -239,4 +263,4 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
-});
+}); 
