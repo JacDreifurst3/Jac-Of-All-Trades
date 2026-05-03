@@ -1,7 +1,4 @@
-/* ============================================================
-   EXPLOSION ANIMATION SYSTEM
-   Particle burst when a piece is captured in battle
-   ============================================================ */
+/*  Particle burst when a piece is captured in battle*/
 
    .explosion-container {
     position: absolute;
