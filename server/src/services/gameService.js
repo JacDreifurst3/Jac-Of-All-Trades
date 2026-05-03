@@ -37,6 +37,19 @@ const gameService = {
         return restoredGame;
     },
 
+    // Deletes lobby, called when both players have left the game for longer than 30 seconds.
+    deleteLobby: async (lobbyCode) => {
+        try {
+            await GameModel.deleteOne({ lobbyCode });
+
+            activeGames.delete(lobbyCode);
+            
+            console.log(`Lobby ${lobbyCode} Deleted.`);
+        } catch (error) {
+            console.error(`Error deleting lobby ${lobbyCode}:`, error);
+        }
+    },
+
     // Saves current game state to MongoDB — called after every action
     saveGameState: async (lobbyCode) => {
         const game = activeGames.get(lobbyCode);
