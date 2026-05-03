@@ -3,7 +3,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config();
-const connectDB = require('./src/config/db');
+const connectDB = require('./src/config/DB');
 const gameService = require('./src/services/GameService');
 const gameRoutes = require('./src/routes/GameRoutes');
 const authRoutes = require('./src/routes/Auth');

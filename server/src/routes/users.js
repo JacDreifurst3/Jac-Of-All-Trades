@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/UserController');
 //protection
-const verifyToken = require('../middleware/authMiddleware');
+const verifyToken = require('../middleware/AuthMiddleware');
 
 // GET /api/users/leaderboard — public
 router.get('/leaderboard', userController.getLeaderboard);

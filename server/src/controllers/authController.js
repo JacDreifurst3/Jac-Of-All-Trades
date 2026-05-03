@@ -1,4 +1,4 @@
-const admin = require('../config/firebase'); // The Firebase Admin 
+const admin = require('../config/Firebase'); // The Firebase Admin 
 const User = require('../models/UserModel');       // The user blueprint
 
 exports.syncUser = async (req, res) => {

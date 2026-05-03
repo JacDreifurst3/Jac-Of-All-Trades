@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const gameService = require('../services/GameService');
-const verifyToken = require('../middleware/authMiddleware');
+const verifyToken = require('../middleware/AuthMiddleware');
 const GameModel = require('../models/GameModel');
 
 // Creates a new game instance and returns the lobby code
