@@ -1,8 +1,10 @@
-//this file protects routes using firebase tokens
-//makes it so anyone can't modify anyone's data
+// This file uses Firebase tokens to protect routes when changing account elements.
 
 const admin = require('../config/firebase');
 
+// req - the incoming request
+// res - the response
+// next - function to pass on the request
 const verifyToken = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
@@ -17,13 +19,14 @@ const verifyToken = async (req, res, next) => {
             return res.status(401).json({ message: "Invalid token format" });
         }
 
-        // Verify the token with Firebase
+        // Sends token to Firebase for verification
         const decodedToken = await admin.auth().verifyIdToken(token);
         
         // Attach the uid to the request so controllers can use it
         req.uid = decodedToken.uid;
         
-        next(); // Token is valid, move on to the route handler
+        // Token is valid - pass to route handler
+        next();
         
     } catch (error) {
         console.error("Auth Middleware Error:", error.message);

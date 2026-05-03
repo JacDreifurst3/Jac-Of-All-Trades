@@ -1,10 +1,9 @@
-const admin = require('../config/firebase'); // The Firebase Admin 
-const User = require('../models/UserModel');       // The user blueprint
+const admin = require('../config/firebase');
+const User = require('../models/UserModel');
 
 exports.syncUser = async (req, res) => {
     try {
-        // 1. Get the token from the "Authorization" header
-
+        // Gets token from the authorization header
         const authHeader = req.headers.authorization;
         if (!authHeader) {
             return res.status(401).json({ message: "No security token provided" });
@@ -12,24 +11,24 @@ exports.syncUser = async (req, res) => {
 
         const token = authHeader.split(' ')[1];
 
-        // 2. Ask Firebase to verify the token
+        // Sends token to Firebase for verification
         const decodedToken = await admin.auth().verifyIdToken(token);
-        const uid = decodedToken.uid; // The unique ID for this user
+        const uid = decodedToken.uid;
 
-        // 3. Check if this user already exists in our MongoDB
+        // Checks if user already exists in MongoDB
         let user = await User.findById(uid);
 
         if (!user) {
-            // 4. If they are NEW, create their record in the database
+            // If not in MongoDB, create user in MongoDB
             console.log(`Creating new user profile for: ${uid}`);
             user = await User.create({
                 _id: uid,
-                username: req.body.username, // From the frontend form
+                username: req.body.username, 
                 profilePicUrl: req.body.profilePicUrl || ""
             });
         }
 
-        // 5. Send the user data back to the frontend
+        // Send the user data back to the frontend
         res.status(200).json(user);
 
     } catch (error) {
