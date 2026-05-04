@@ -7,7 +7,6 @@ import {
   signInWithPopup
 } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
-import "./LoginPage.css";
 
 // Handles both login and signup — toggled by isSignUp state
 export default function LoginPage() {
