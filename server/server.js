@@ -227,7 +227,7 @@ io.on("connection", (socket) => {
         }
     });
 
-    //deletes lobbys if both players disconnected for long enough
+    // Deletes lobbys if both players disconnected for long enough
     socket.on("disconnect", async () => {
         console.log(`User disconnected: ${socket.id}`);
         const { lobbyCode, playerColor } = socket;

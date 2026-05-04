@@ -1,5 +1,6 @@
 const User = require('../models/UserModel');
 
+// Fetches user profile information through Firebase UID
 exports.getProfile = async (req, res) => {
     try {
         const user = await User.findById(req.params.uid);
@@ -13,8 +14,8 @@ exports.getProfile = async (req, res) => {
     }
 };
 
+// Updates user profile information in MongoDB
 exports.updateProfile = async (req, res) => {
-    // Make sure users can only edit their own profile
     if (req.uid !== req.params.uid) {
         return res.status(403).json({ message: "You can only update your own profile" });
     }
@@ -45,6 +46,7 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
+// Updates user statistics in MongoDB
 exports.updateStats = async (req, res) => {
     try {
         const { result } = req.body;
@@ -78,21 +80,7 @@ exports.updateStats = async (req, res) => {
     }
 };
 
-exports.getLeaderboard = async (req, res) => {
-    try {
-        const topPlayers = await User.find()
-            .sort({ wins: -1 })
-            .limit(10)
-            .select('username profilePicUrl wins losses gamesPlayed');
-
-        res.status(200).json(topPlayers);
-    } catch (error) {
-        console.error("Leaderboard Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-};
-
-// DELETE /api/users/:uid — removes user from MongoDB
+// Removes user from MongoDB, Firebase deletion handled on front end
 exports.deleteAccount = async (req, res) => {
     try {
         if (req.uid !== req.params.uid) {

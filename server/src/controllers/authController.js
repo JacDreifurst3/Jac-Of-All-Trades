@@ -1,6 +1,7 @@
 const admin = require('../config/firebase');
 const User = require('../models/UserModel');
 
+//  Syncs user in Firebase with MongoDB: creates a new profile if first time, or fetches existing profile
 exports.syncUser = async (req, res) => {
     try {
         // Gets token from the authorization header
