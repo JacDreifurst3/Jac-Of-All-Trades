@@ -1,7 +1,7 @@
 //this file protects routes using firebase tokens
 //makes it so anyone can't modify anyone's data
 
-const admin = require('../config/firebase');
+const admin = require('../config/Firebase');
 
 const verifyToken = async (req, res, next) => {
     try {
