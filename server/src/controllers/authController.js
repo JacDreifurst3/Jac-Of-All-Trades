@@ -1,5 +1,5 @@
-const admin = require('../config/firebase');
-const User = require('../models/UserModel');
+const admin = require('../config/Firebase'); // The Firebase Admin 
+const User = require('../models/UserModel');       // The user blueprint
 
 //  Syncs user in Firebase with MongoDB: creates a new profile if first time, or fetches existing profile
 exports.syncUser = async (req, res) => {

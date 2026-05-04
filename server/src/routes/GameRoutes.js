@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const gameService = require('../services/gameService');
-// Security protection
+const gameService = require('../services/GameService');
 const verifyToken = require('../middleware/AuthMiddleware');
 const GameModel = require('../models/GameModel');
 

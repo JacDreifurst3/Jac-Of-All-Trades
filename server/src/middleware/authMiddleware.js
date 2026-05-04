@@ -1,6 +1,6 @@
 // This file uses Firebase tokens to protect routes when changing account elements.
 
-const admin = require('../config/firebase');
+const admin = require('../config/Firebase');
 
 // req - the incoming request
 // res - the response

@@ -145,68 +145,59 @@ class Game {
 
   // Resolves battle based on battle logic
   resolveBattle(attacker, defender, fromSpace, toSpace) {
-    // Reveals both pieces to opposing sides
-    attacker.reveal();
-    defender.reveal();
-    
-    const attackerColor = this.currentPlayer;
-    const defenderColor = attackerColor === "RED" ? "BLUE" : "RED";
-    
-    // Flag loses to any attack
-    if (defender.getRank() === 0) {
-      // Removes losing piece from board
-      toSpace.removePiece();
-      // Moves attacking space to flag's former position
-      this.board.executeMove(fromSpace, toSpace);
-      // Records battle on battle log
-      this.recordBattle("FLAG_CAPTURED", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
-      // Capturing flag wins game
-      this.gameOver = true;
-      this.winner = this.currentPlayer;
-      this.winReason = "flag_captured";
-      return "FLAG_CAPTURED";
-    }
+  attacker.reveal();
+  defender.reveal();
 
-    // Miner (rank 3) defuses bomb
-    if (defender.getRank() === 11 && attacker.getRank() === 3) {
-      toSpace.removePiece();
-      this.board.executeMove(fromSpace, toSpace);
-      this.recordBattle("ATTACKER_DEFUSED_BOMB", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
-      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
-      return "ATTACKER_DEFUSED_BOMB";
-    }
+  const attackerColor = this.currentPlayer;
+  const defenderColor = attackerColor === "RED" ? "BLUE" : "RED";
 
-    // Spy (rank 1) defeats Marshal (rank 10) if spy attacks
-    if (attacker.getRank() === 1 && defender.getRank() === 10) {
-      toSpace.removePiece();
-      this.board.executeMove(fromSpace, toSpace);
-      this.recordBattle("ATTACKER_ASSASINATED_MARSHAL", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
-      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
-      return "ATTACKER_ASSASINATED_MARSHAL";
-    }
+  let result;
+  let attackerWins = false;
+  let defenderWins = false;
 
-    // Outside of special cases, higher rank wins
-    // Bomb is evaluated as 11 as it defeats all pieces other than miner
-    if (attacker.rank > defender.rank) {
-      toSpace.removePiece();
-      this.board.executeMove(fromSpace, toSpace);
-      this.recordBattle("ATTACKER_WINS", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
-      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
-      return "ATTACKER_WINS";
-    } else if (attacker.rank < defender.rank) {
-      fromSpace.removePiece();
-      this.recordBattle("DEFENDER_WINS", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
-      this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
-      return "DEFENDER_WINS";
-    } else {
-      // Same rank: both die
-      fromSpace.removePiece();
-      toSpace.removePiece();
-      this.recordBattle("BOTH_DIE", attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
-      this.revealedAfterBattle = null;
-      return "BOTH_DIE";
-    }
+  // Flag loses any battle
+  if (defender.getRank() === 0) {
+    result = "FLAG_CAPTURED";
+    attackerWins = true;
+    this.gameOver = true;
+    this.winner = this.currentPlayer;
+    this.winReason = "flag_captured";
+    // Miner defuses bomb
+  } else if (defender.getRank() === 11 && attacker.getRank() === 3) {
+    result = "ATTACKER_DEFUSED_BOMB";
+    attackerWins = true;
+    // Spy assasinates marshal if attacking
+  } else if (attacker.getRank() === 1 && defender.getRank() === 10) {
+    result = "ATTACKER_ASSASINATED_MARSHAL";
+    attackerWins = true;
+  } else if (attacker.rank > defender.rank) {
+    result = "ATTACKER_WINS";
+    attackerWins = true;
+  } else if (attacker.rank < defender.rank) {
+    result = "DEFENDER_WINS";
+    defenderWins = true;
+  } else {
+    result = "BOTH_DIE";
   }
+
+  // Execute board changes
+  if (attackerWins) {
+    toSpace.removePiece();
+    this.board.executeMove(fromSpace, toSpace);
+    this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
+  } else if (defenderWins) {
+    fromSpace.removePiece();
+    this.revealedAfterBattle = { x: toSpace.x, y: toSpace.y };
+  } else {
+    fromSpace.removePiece();
+    toSpace.removePiece();
+    this.revealedAfterBattle = null;
+  }
+
+  this.recordBattle(result, attacker.getRank(), defender.getRank(), attackerColor, defenderColor);
+
+  return result;
+}
 
   // Switches current player
   switchTurn() {
