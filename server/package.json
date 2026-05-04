@@ -2,7 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "Server.js",
   "Dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
@@ -17,7 +17,7 @@
     "nodemon": "^3.0.0"
   },
   "scripts": {
-    "start": "node ./server.js",
+    "start": "node ./Server.js",
     "test": "jest"
   },
   "keywords": [],
