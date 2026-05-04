@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/AuthController');
-// protection
+// Security protection
 const verifyToken = require('../middleware/AuthMiddleware');
 
-// POST /api/auth/sync — protected, must be logged in to sync
+// Syncs a Firebase user with MongoDB after login
 router.post('/sync', verifyToken, authController.syncUser);
 
 module.exports = router;

@@ -1,8 +1,7 @@
-//share data across app
+// This file shares the data across the app
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../config/firebase";
-// calls on login/logout/refresh
 import { onAuthStateChanged } from "firebase/auth";
 
 const AuthContext = createContext();

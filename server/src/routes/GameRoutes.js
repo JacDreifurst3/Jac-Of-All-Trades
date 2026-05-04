@@ -12,6 +12,7 @@ router.post('/create', async (req, res) => {
     res.status(201).json({ lobbyCode });
 });
 
+// Checks if a lobby exists and has an open slot before a player joins
 router.post('/join', async (req, res) => {
     const { lobbyCode } = req.body;
     const game = await gameService.getGame(lobbyCode);

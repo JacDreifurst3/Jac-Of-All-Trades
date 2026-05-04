@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 
+// Connects to Firebase using the Firebase connectors in the local .env file
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT env variable is missing!');
 }
