@@ -27,7 +27,7 @@ const gameService = {
             return activeGames.get(lobbyCode);
         }
 
-        // Not in memory — try to restore from MongoDB
+        // Not in memory: try to restore from MongoDB
         const savedGame = await GameModel.findOne({ lobbyCode, status: { $ne: 'FINISHED' } });
         if (!savedGame) return null;
 
@@ -37,20 +37,7 @@ const gameService = {
         return restoredGame;
     },
 
-    // Deletes lobby, called when both players have left the game for longer than 30 seconds.
-    deleteLobby: async (lobbyCode) => {
-        try {
-            await GameModel.deleteOne({ lobbyCode });
-
-            activeGames.delete(lobbyCode);
-            
-            console.log(`Lobby ${lobbyCode} Deleted.`);
-        } catch (error) {
-            console.error(`Error deleting lobby ${lobbyCode}:`, error);
-        }
-    },
-
-    // Saves current game state to MongoDB — called after every action
+    // Saves current game state to MongoDB, called after every action
     saveGameState: async (lobbyCode) => {
         const game = activeGames.get(lobbyCode);
         if (!game) return;

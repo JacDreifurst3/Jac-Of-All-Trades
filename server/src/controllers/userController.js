@@ -30,6 +30,7 @@ exports.updateProfile = async (req, res) => {
                 updates[field] = req.body[field];
             }
         });
+        
         // Apply updates and return the new document, running schema validators
         const user = await User.findByIdAndUpdate(
             req.params.uid,

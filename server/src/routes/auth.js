@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/AuthController');
-//protection
-const verifyToken = require('../middleware/AuthMiddleware');
-const authController = require('../controllers/authController');
 // Security protection
 const verifyToken = require('../middleware/AuthMiddleware');
 
