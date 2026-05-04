@@ -9,7 +9,7 @@
 
 
 ### Setup the code
-On the git hub repository click the green code putting and open code in github desktop, then the editor of your choice.
+On the git hub repository click the green code button and open code in github desktop, then the editor of your choice.
 
 Once the code has been pulled and opened in the editor of your choice there is one file that must be ended. In the root directory folder Jac-Of-All-Trades add the .end file with the MONGO and Firebase strings in them. Save the file before exiting. 
 
