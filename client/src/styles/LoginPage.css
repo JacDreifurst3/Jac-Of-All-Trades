@@ -1,0 +1,187 @@
+/*
+   login UI
+*/
+.login-root {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Cinzel", serif;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow-y: auto;
+  }
+  
+  .login-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(45, 8, 3, 0.62);
+    z-index: 0;
+  }
+  
+  .login-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .login-title {
+    font-size: 60px;
+    color: #f5dd81;
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    text-shadow: 0 0 24px rgba(245, 221, 129, 0.4);
+  }
+  
+  .login-subtitle {
+    color: #dbb26a;
+    font-family: "Rajdhani", sans-serif;
+    letter-spacing: 0.2em;
+    font-size: 20px;
+    margin-bottom: 36px;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  
+  .login-card {
+    background: linear-gradient(
+      180deg,
+      rgba(63, 6, 1, 0.92) 0%,
+      rgba(36, 8, 0, 0.95) 100%
+    );
+    border: 5px solid #8b6914;
+    border-radius: 8px;
+    padding: 36px 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .login-card-title {
+    color: #f5dd81;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  
+  .login-error {
+    background: rgba(160, 30, 30, 0.95);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: "Rajdhani", sans-serif;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(255, 100, 100, 0.4);
+    text-align: center;
+  }
+  
+  .login-input {
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(139, 105, 20, 0.5);
+    border-radius: 6px;
+    color: #e8d5a3;
+    font-family: "Rajdhani", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .login-btn-primary {
+    padding: 12px;
+    background: rgba(245, 221, 129, 0.15);
+    border: 2px solid #f5dd81;
+    border-radius: 6px;
+    color: #f5efd7;
+    font-family: "Cinzel", serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  
+  .login-btn-primary:hover {
+    background: rgba(245, 187, 129, 0.59);
+  }
+  
+  .login-btn-primary:disabled {
+    cursor: not-allowed;
+  }
+  
+  .login-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #8b7040;
+  }
+  
+  .login-divider-line {
+    flex: 1;
+    height: 1px;
+    background: #8b6914;
+  }
+  
+  .login-divider-text {
+    font-family: "Rajdhani", sans-serif;
+    font-size: 13px;
+  }
+  
+  .login-btn-google {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid #bb9e2b;
+    border-radius: 6px;
+    color: #e8d5a3;
+    font-family: "Rajdhani", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  
+  .login-btn-google:hover {
+    background: rgba(253, 219, 167, 0.38);
+  }
+  
+  .login-btn-google:disabled {
+    cursor: not-allowed;
+  }
+  
+  .login-btn-toggle {
+    padding: 10px;
+    background: transparent;
+    border: 2px solid #8b751f;
+    border-radius: 6px;
+    color: #e8d5a3;
+    font-family: "Rajdhani", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    width: 100%;
+  }
+  
+  .login-btn-toggle:hover {
+    background: rgba(201, 168, 76, 0.55);
+    border-color: #edce81;
+  }
